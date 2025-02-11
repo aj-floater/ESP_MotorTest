@@ -1,6 +1,5 @@
 #include "mbed.h"
 #include "C12832.h"
-
 class Encoder {
 
     public:
@@ -45,6 +44,113 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 };
 
+// This section will define a Wheel class, allowing users to set a target angular (or linear) velocity.
+// The PID controller will continuously calculate the error between the desired and actual speed, 
+// adjusting the PWM duty cycle accordingly to maintain the set speed.
+//
+// The PID control loop will:
+// 1. Measure the current speed from sensors (e.g., encoders).
+// 2. Compute the error by comparing the measured speed to the target speed.
+// 3. Apply PID corrections to adjust motor power via PWM.
+class Wheel {
+private:
+    float desired_speed;
+    float measured_speed;
+
+    float proportional_gain;
+    float integral_gain;
+    float derivative_gain;
+
+    float control_output;
+
+    Timer timer;
+    float previous_time;
+    float previous_error;
+    float previous_integral;
+
+    Encoder encoder;
+    PwmOut motor;
+
+public:
+    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
+        proportional_gain(Kp), 
+        integral_gain(Ki), 
+        derivative_gain(Kd), 
+        encoder(ChA, ChB),
+        motor(pwm)
+    {
+        encoder.initialise();
+        timer.start();
+
+        motor.period_us(45);
+
+        desired_speed = 0.0f;
+        measured_speed = 0.0f;
+        control_output = 0.6f;
+    }
+
+    float measured_speed_angular() { return encoder.speed_angular(); };
+    float measured_speed_linear() { return encoder.speed_linear(); };
+
+    float deltaTime(){
+        int dt = timer.read_us() - previous_time;
+        timer.reset();
+        return dt / 1'000'000.0f;  // Convert µs to seconds
+    }
+
+    float integral(float dt, float Et){
+        float current_integral = previous_integral + (dt/2) * (Et + previous_error);
+        
+        // Setup values for next iteration
+        previous_integral = current_integral;
+        return current_integral;
+    }
+
+    float derivative(float dt, float Et){
+        return (Et - previous_error) / dt;
+    }
+
+    // Set speed in rad/s
+    float speed(float s){
+        desired_speed = s;
+        return 0;
+    }
+    float speed(){
+        return desired_speed;
+    }
+
+    // Calculate the error e(t) = Desired Speed − Measured Speed
+    float error(){
+        return desired_speed - measured_speed_angular();
+    }
+
+    // Calculate the control output (ie the PWM duty cycle)
+    void pidControl(){
+        float Et = error(); // gets the error at the current time
+        float dt = deltaTime();
+
+        float proportional_term = proportional_gain * Et;
+        float integral_term = integral_gain * integral(dt, Et);
+        float derivative_term = derivative_gain * derivative(dt, Et);
+
+        control_output = proportional_term + integral_term + derivative_term;
+
+        // Setup values for next iteration
+        previous_error = Et;
+    }
+
+    void update(){
+        // Clamp final output to 0.0f and 1.0f
+        float final_output;
+
+        if (control_output < 0.0f) final_output = 0.0f;
+        else if (control_output > 1.0f) final_output = 1.0f;
+        else final_output = control_output;
+
+        motor.write(final_output);
+    }
+};
+
 void floatToString(float value, char *buffer) {
     int int_part = (int)value;  // Extract integer part
     float decimal_part = value - int_part;  // Get fractional part
@@ -56,8 +162,26 @@ void floatToString(float value, char *buffer) {
     sprintf(buffer, "%d.%.3d", int_part, decimal_int);
 }
 
+Wheel left_wheel(1.0f, 0.0f, 0.0f, PA_12, PA_11, PC_6, 1.0f);
+
+// kp debugging
+float Kp = 0.0f;
+float dKp = 0.1f;
+void leftISR(){
+    Kp = Kp - dKp;
+}
+void rightISR(){
+    Kp = Kp + dKp;
+}
+void upISR(){
+    left_wheel.speed(left_wheel.speed()+1);
+}
+void downISR(){
+    left_wheel.speed(left_wheel.speed()-1);
+}
 
 int main(void){
+    // Pin Setup
     // ----------------------------
     DigitalOut Bipolar1(PB_13);
     Bipolar1.write(0);
@@ -65,7 +189,7 @@ int main(void){
     DigitalOut Direction1(PB_14);
     Direction1.write(1);
     
-    PwmOut Motor1(PC_6);
+    // PwmOut Motor1(PC_6);
 
     DigitalOut Bipolar2(PB_15);
     Bipolar2.write(0);
@@ -79,68 +203,46 @@ int main(void){
     Enable.write(1);
     // ----------------------------
 
-    Encoder Encoder1(PA_12, PA_11);
-    Encoder1.initialise();
-
-    // ----------------------------
-
     C12832 lcd(D11, D13, D12, D7, D10);
 
+    // Joystick
+    // InterruptIn centre(D4);
+    InterruptIn up(PA_4);
+    InterruptIn down(PB_0);
+    InterruptIn left(PC_1);
+    InterruptIn right(D4);
 
-    // ----------------------------
-    Motor1.period_us(45);
-    Motor2.period_us(45);
-
-    Motor1.write(0.6f);
-    Motor2.write(0.6f);
+    up.rise(&upISR);
+    down.rise(&downISR);
+    left.rise(&leftISR);
+    right.rise(&rightISR);
 
     char buffer[50];
-
-    float speed1 = 0.2f;
-    float speed2 = 0.4f;
-    float speed3 = 0.6f;
-    float speed4 = 0.8f;
-
-    int i = 0;
+    left_wheel.speed(20.0f);
 
     while(1){
 
-        // Speed Changes Section
-        if (i < 20){
-            Motor1.write(speed1);
-            Motor2.write(speed1);
-        }
-        else if (i < 40){
-            Motor1.write(speed2);
-            Motor2.write(speed2);
-        }
-        else if (i < 60){
-            Motor2.write(speed3);
-            Motor1.write(speed3);
-        }
-        else if (i < 80){
-            Motor1.write(speed4);
-            Motor2.write(speed4);
-        }
-        
-        i++;
-        if (i > 80){
-            i = 0;
-        }
+        left_wheel.update();
 
         // Display Section
-        float speed_l = Encoder1.speed_linear();
-        float speed_a = Encoder1.speed_angular();
-        lcd.locate(10,0);
-        floatToString(speed_l, buffer);
-        lcd.printf("LinearSpeed: %s\n", buffer);
-        
-        lcd.locate(10, 10);
-        floatToString(speed_a, buffer);
-        lcd.printf("AngularSpeed: %s\n", buffer);
 
-        lcd.locate(10, 20);
-        lcd.printf("i: %d", i);
+        lcd.locate(0,0);
+        // lcd.printf("Hello World");
+        floatToString(Kp, buffer);
+        lcd.printf("Kp: %s\n", buffer);
+        lcd.locate(0,10);
+        floatToString(left_wheel.speed(), buffer);
+        lcd.printf("s: %s\n", buffer);
+
+        // float speed_l = Encoder1.speed_linear();
+        // float speed_a = Encoder1.speed_angular();
+        // floatToString(speed_l, buffer);
+        // lcd.printf("LinearSpeed: %s\n", buffer);
+        // lcd.locate(10, 10);
+        // floatToString(speed_a, buffer);
+        // lcd.printf("AngularSpeed: %s\n", buffer);
+        // lcd.locate(10, 20);
+        // lcd.printf("i: %d", i);
 
         wait_us(1000);
     }
