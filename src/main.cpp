@@ -7,7 +7,7 @@ class Encoder {
 
     InterruptIn ChanelA, ChanelB;
     Ticker Encoder_dt; 
-    float dt = 1.0;
+    float dt = 1;
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
     
@@ -27,7 +27,7 @@ class Encoder {
         
         float radPERseconds = (EncoderTick/256.0)*2.0*3.141519;
         float wheelVelocity = 0.08*radPERseconds;
-        return wheelVelocity;
+        return radPERseconds;
     }
 
     protected:
@@ -78,13 +78,14 @@ int main(void){
     Motor1.period_us(45);
     Motor2.period_us(45);
 
-    Motor1.write(0.6f);
-    Motor2.write(0.6f);
+    // Motor1.write(0.6f);
+    // Motor2.write(0.6f);
 
     while(1){
 
+        float speed = Encoder1.speed();
         lcd.locate(10,0);
-        lcd.printf("Wheel speed is: %f \n", Encoder1.speed());
-        wait_us(100000);
+        lcd.printf("Wheel speed is: %d \n", speed);
+       // wait_us(100000);
     }
 }
