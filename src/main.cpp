@@ -41,6 +41,16 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 };
 
+void floatToString(float value, char *buffer) {
+    int int_part = (int)value;  // Extract integer part
+    float decimal_part = value - int_part;  // Get fractional part
+
+    if (decimal_part < 0) decimal_part = -decimal_part;  // Handle negatives
+    int decimal_int = (int)(decimal_part * pow(10, 3) + 0.5); // Scale & round
+
+    // Format as string
+    sprintf(buffer, "%d.%.3d", int_part, decimal_int);
+}
 
 
 int main(void){
@@ -77,13 +87,17 @@ int main(void){
     Motor1.period_us(45);
     Motor2.period_us(45);
 
-    Motor1.write(0.6f);
-    Motor2.write(0.6f);
+    // Motor1.write(0.6f);
+    // Motor2.write(0.6f);
+
+    float num = -123.45678;
+    char buffer[50];
 
     while(1){
 
         lcd.locate(10,0);
-        lcd.printf("Wheel speed is: %f \n", Encoder1.speed());
+        floatToString(num, buffer);
+        lcd.printf("Converted String: %s\n", buffer);
         wait_us(100000);
     }
 }
