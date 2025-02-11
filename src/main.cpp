@@ -7,7 +7,7 @@ class Encoder {
 
     InterruptIn ChanelA, ChanelB;
     Ticker Encoder_dt; 
-    float dt = 1.0;
+    float dt = 1.0f;
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
     
@@ -24,9 +24,8 @@ class Encoder {
     }
 
     float speed(void){
-        
-        float radPERseconds = (EncoderTick/256.0)*2.0*3.141519;
-        float wheelVelocity = 0.08*radPERseconds;
+        float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
+        float wheelVelocity = 0.08f * radPERseconds;
         return wheelVelocity;
     }
 
