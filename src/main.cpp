@@ -23,10 +23,14 @@ class Encoder {
 
     }
 
-    float speed(void){
+    float speed_linear(void){
         float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
         float wheelVelocity = 0.08f * radPERseconds;
         return wheelVelocity;
+    }
+    float speed_angular(void){
+        float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
+        return radPERseconds;
     }
 
     protected:
@@ -125,11 +129,16 @@ int main(void){
         }
 
         // Display Section
-        float speed = Encoder1.speed();
+        float speed_l = Encoder1.speed_linear();
+        float speed_a = Encoder1.speed_angular();
         lcd.locate(10,0);
-        floatToString(speed, buffer);
-        lcd.printf("Converted String: %s\n", buffer);
+        floatToString(speed_l, buffer);
+        lcd.printf("LinearSpeed: %s\n", buffer);
         
+        lcd.locate(10, 10);
+        floatToString(speed_a, buffer);
+        lcd.printf("AngularSpeed: %s\n", buffer);
+
         lcd.locate(10, 20);
         lcd.printf("i: %d", i);
 
