@@ -1,4 +1,5 @@
-Motor Driver Board
-![Motor Driver](images/IMG_2045.jpg)
+-- Motor Driver Board
+![Motor Driver](images/motorBoard.png)
 
-
+-- Wiring
+![Wiring](images/wiring.jpg)
