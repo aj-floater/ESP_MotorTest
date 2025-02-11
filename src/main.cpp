@@ -101,26 +101,26 @@ int main(void){
 
     while(1){
 
-        // Speed Changes Section#
-        i++;
+        // Speed Changes Section
         if (i < 20){
-            Motor1.period(speed1);
-            Motor2.period(speed1);
+            Motor1.write(speed1);
+            Motor2.write(speed1);
         }
         else if (i < 40){
-            Motor1.period(speed2);
-            Motor2.period(speed2);
+            Motor1.write(speed2);
+            Motor2.write(speed2);
         }
         else if (i < 60){
-            Motor1.period(speed2);
-            Motor2.period(speed2);
+            Motor2.write(speed3);
+            Motor1.write(speed3);
         }
         else if (i < 80){
-            Motor1.period(speed1);
-            Motor2.period(speed1);
+            Motor1.write(speed4);
+            Motor2.write(speed4);
         }
-
-        if (i > 99){
+        
+        i++;
+        if (i > 80){
             i = 0;
         }
 
@@ -129,8 +129,10 @@ int main(void){
         lcd.locate(10,0);
         floatToString(speed, buffer);
         lcd.printf("Converted String: %s\n", buffer);
+        
+        lcd.locate(10, 20);
+        lcd.printf("i: %d", i);
 
-
-        wait_us(100000);
+        wait_us(1000);
     }
 }
