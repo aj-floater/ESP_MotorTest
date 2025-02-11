@@ -1,6 +1,49 @@
 #include "mbed.h"
 #include "C12832.h"
 
+class Encoder {
+
+    public:
+
+    InterruptIn ChanelA, ChanelB;
+    Ticker Encoder_dt; 
+    float dt = 1.0;
+    volatile float EncoderTick;
+    volatile int countA = 0, countB = 0;
+    
+
+    Encoder(PinName ChA, PinName ChB) : ChanelA(ChA), ChanelB(ChB){}
+
+    void initialise(void){
+        
+        Encoder_dt.attach(callback(this,&Encoder::EncoderCycleISR), dt);
+        
+        ChanelA.rise(callback(this,&Encoder::ChanelA_countISR));
+        ChanelB.rise(callback(this,&Encoder::ChanelB_countISR));
+
+    }
+
+    float speed(void){
+        
+        float radPERseconds = (EncoderTick/256.0)*2.0*3.141519;
+        float wheelVelocity = 0.08*radPERseconds;
+        return wheelVelocity;
+    }
+
+    protected:
+
+    void EncoderCycleISR(void){
+
+        EncoderTick = (float(countA)/dt);
+        countA = 0; countB = 0;
+    }
+
+    void ChanelA_countISR(void){countA++;}
+    void ChanelB_countISR(void){countB++;}
+};
+
+
+
 int main(void){
     // ----------------------------
     DigitalOut Bipolar1(PB_13);
@@ -23,6 +66,15 @@ int main(void){
     Enable.write(1);
     // ----------------------------
 
+    Encoder Encoder1(PA_12, PA_11);
+    Encoder1.initialise();
+
+    // ----------------------------
+
+    C12832 lcd(D11, D13, D12, D7, D10);
+
+
+    // ----------------------------
     Motor1.period_us(45);
     Motor2.period_us(45);
 
@@ -31,7 +83,8 @@ int main(void){
 
     while(1){
 
-        // printf("The speed of wheel 1 is: %f \n", Encoder1.speed());
-
+        lcd.locate(10,0);
+        lcd.printf("Wheel speed is: %f \n", Encoder1.speed());
+        wait_us(100000);
     }
 }
