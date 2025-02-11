@@ -7,7 +7,7 @@ class Encoder {
 
     InterruptIn ChanelA, ChanelB;
     Ticker Encoder_dt; 
-    float dt = 1.0f;
+    float dt = 0.5;
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
     
@@ -87,18 +87,50 @@ int main(void){
     Motor1.period_us(45);
     Motor2.period_us(45);
 
-    // Motor1.write(0.6f);
-    // Motor2.write(0.6f);
+    Motor1.write(0.6f);
+    Motor2.write(0.6f);
 
-    float num = -123.45678;
     char buffer[50];
+
+    float speed1 = 0.2f;
+    float speed2 = 0.4f;
+    float speed3 = 0.6f;
+    float speed4 = 0.8f;
+
+    int i = 0;
 
     while(1){
 
+        // Speed Changes Section#
+        i++;
+        if (i < 20){
+            Motor1.period(speed1);
+            Motor2.period(speed1);
+        }
+        else if (i < 40){
+            Motor1.period(speed2);
+            Motor2.period(speed2);
+        }
+        else if (i < 60){
+            Motor1.period(speed2);
+            Motor2.period(speed2);
+        }
+        else if (i < 80){
+            Motor1.period(speed1);
+            Motor2.period(speed1);
+        }
+
+        if (i > 99){
+            i = 0;
+        }
+
+        // Display Section
         float speed = Encoder1.speed();
         lcd.locate(10,0);
-        floatToString(num, buffer);
+        floatToString(speed, buffer);
         lcd.printf("Converted String: %s\n", buffer);
+
+
         wait_us(100000);
     }
 }
