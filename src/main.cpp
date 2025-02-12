@@ -78,6 +78,7 @@ public:
     // Set speed in rad/s
     float speed(float s){
         desired_speed = s;
+        control_output = 1 - s/50;
         return 0;
     }
     float speed(){
@@ -254,6 +255,7 @@ int main(void){
     left_wheel.speed(30.0f);
 
     while(1){
+        
         left_wheel.update();
 
         refreshDisplay();
