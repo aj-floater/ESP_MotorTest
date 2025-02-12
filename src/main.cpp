@@ -58,32 +58,22 @@ public:
     float measured_speed;
 
     float proportional_gain;
-    float integral_gain;
-    float derivative_gain;
+    float previous_error;
 
     float control_output;
-
-    Timer timer;
-    float previous_time;
-    float previous_error;
-    float previous_error_2;
-    float previous_integral;
 
     Encoder encoder;
     PwmOut motor;
 
-    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
+    Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
         proportional_gain(Kp), 
-        integral_gain(Ki), 
-        derivative_gain(Kd), 
         encoder(ChA, ChB),
         motor(pwm)
     {
         encoder.initialise();
-        timer.start();
 
         motor.period_us(45);
-        motor.write(0.8f);
+        motor.write(1.0f);
 
         desired_speed = 0.0f;
         measured_speed = 0.0f;
@@ -92,12 +82,6 @@ public:
 
     float measured_speed_angular() { return encoder.speed_angular(); };
     float measured_speed_linear() { return encoder.speed_linear(); };
-
-    float deltaTime(){
-        int dt = timer.read_us() - previous_time;
-        timer.reset();
-        return dt / 1'000'000.0f;  // Convert µs to seconds
-    }
 
     // Set speed in rad/s
     float speed(float s){
@@ -114,14 +98,11 @@ public:
     }
 
     // Calculate the control output (ie the PWM duty cycle)
-    void piControl(){
+    void pControl(){
         float Et = error(); // gets the error at the current time
-        float dt = deltaTime();
 
         float proportional_term = proportional_gain * Et;
-        float integral_term = integral_gain * dt * Et - previous_error * proportional_gain;
-
-        control_output += proportional_term + integral_term;
+        control_output += proportional_term;
 
         // Setup values for next iteration
         previous_error = Et;
@@ -129,7 +110,7 @@ public:
 
     void update(){
         // Clamp final output to 0.0f and 1.0f
-        piControl();
+        pControl();
 
         if (control_output < 0.0f) control_output = 0.0f;
         else if (control_output > 1.0f) control_output = 0.8f;
@@ -186,7 +167,7 @@ void floatToString(float value, char *buffer) {
     buffer[index] = '\0';
 }
 
-Wheel left_wheel(0.0192f, 0.0104f, 0.0f/*0.00312f*/, PA_12, PA_11, PC_6, 1.0f);
+Wheel left_wheel(0.0192f, PA_12, PA_11, PC_6, 1.0f);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
