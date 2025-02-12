@@ -6,7 +6,7 @@ class Encoder {
 
     InterruptIn ChanelA, ChanelB;
     Ticker Encoder_dt; 
-    float dt = 0.3;
+    float dt = 0.1;
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
     
@@ -103,7 +103,7 @@ public:
 
     void update(){
         // Clamp final output to 0.0f and 1.0f
-        pControl();
+        // pControl();
 
         if (control_output < 0.0f) control_output = 0.0f;
         else if (control_output > 1.0f) control_output = 0.8f;
@@ -259,5 +259,10 @@ int main(void){
         left_wheel.update();
 
         refreshDisplay();
+
+        floatToString(left_wheel.desired_speed, buffer);
+        printf(">ds:%s,", buffer);
+        floatToString(left_wheel.measured_speed_angular(), buffer);
+        printf("rs:%s\n", buffer);
     }
 }
