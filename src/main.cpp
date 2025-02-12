@@ -43,14 +43,6 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 };
 
-// This section will define a Wheel class, allowing users to set a target angular (or linear) velocity.
-// The PID controller will continuously calculate the error between the desired and actual speed, 
-// adjusting the PWM duty cycle accordingly to maintain the set speed.
-//
-// The PID control loop will:
-// 1. Measure the current speed from sensors (e.g., encoders).
-// 2. Compute the error by comparing the measured speed to the target speed.
-// 3. Apply PID corrections to adjust motor power via PWM.
 class Wheel {
 private:
 public:
