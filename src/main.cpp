@@ -1,5 +1,10 @@
 #include "mbed.h"
 #include "C12832.h"
+#include "stdio.h"
+
+// This class will create objects for the encoders. The constructor expects the pins of ChA and ChB respectively.
+// object.speed_linear() will return the linear speed of the encoder in m/s.
+// object.speed_angular() will return the angular speed of the encoder in rad/s.
 class Encoder {
 
     public:
@@ -151,6 +156,34 @@ public:
     }
 };
 
+
+//This code is invalid yet.
+class Integrator {
+
+    public:
+
+    float f;
+    Ticker I_period;
+    volatile float summation = 0;
+    float *signal;
+
+    Integrator(float frequency, float* Ut):f(frequency), signal(Ut){
+        I_period.attach(callback(this,&Integrator::IntegratorCycleISR),1.0f/f);
+    }
+
+    float get_integral(void){
+        return summation;
+    }
+
+
+    protected:
+    
+    void IntegratorCycleISR(void){
+            summation = (1.0f/f)*(*signal) + summation;
+    }
+
+};
+
 void floatToString(float value, char *buffer) {
     int int_part = (int)value;  // Extract integer part
     float decimal_part = value - int_part;  // Get fractional part
@@ -220,19 +253,23 @@ int main(void){
     char buffer[50];
     left_wheel.speed(20.0f);
 
+    //--------------------
+     Encoder Encoder1(PA_12, PA_11);
+     float integration =0;
+
     while(1){
 
-        left_wheel.update();
+        //left_wheel.update();
 
         // Display Section
 
-        lcd.locate(0,0);
-        // lcd.printf("Hello World");
-        floatToString(Kp, buffer);
-        lcd.printf("Kp: %s\n", buffer);
-        lcd.locate(0,10);
-        floatToString(left_wheel.speed(), buffer);
-        lcd.printf("s: %s\n", buffer);
+        // lcd.locate(0,0);
+        // //lcd.printf("Hello World");
+        // floatToString(Kp, buffer);
+        // lcd.printf("Kp: %s\n", buffer);
+        // lcd.locate(0,10);
+        // floatToString(left_wheel.speed(), buffer);
+        // lcd.printf("s: %s\n", buffer);
 
         // float speed_l = Encoder1.speed_linear();
         // float speed_a = Encoder1.speed_angular();
@@ -243,6 +280,15 @@ int main(void){
         // lcd.printf("AngularSpeed: %s\n", buffer);
         // lcd.locate(10, 20);
         // lcd.printf("i: %d", i);
+
+
+        float speed = Encoder1.speed_linear();
+        lcd.locate(0,0);
+        floatToString(speed, buffer);
+        lcd.printf("Speed: %s\n", buffer);
+
+
+
 
         wait_us(1000);
     }
