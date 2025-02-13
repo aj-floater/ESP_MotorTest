@@ -160,28 +160,22 @@ public:
 //This code is invalid yet.
 class Integrator {
 
+    private:
+    float frequency, signal;
+    Ticker I_Cycle;
+
     public:
 
-    float f;
-    Ticker I_period;
-    volatile float summation = 0;
-    float *signal;
+    Integrator(float f):frequency(f){}
 
-    Integrator(float frequency, float* Ut):f(frequency), signal(Ut){
-        I_period.attach(callback(this,&Integrator::IntegratorCycleISR),1.0f/f);
-    }
-
-    float get_integral(void){
-        return summation;
+    void start(float *signal){
+        I_Cycle.attach(callback(this,&Integrator::IcycleISR),(1.0f/frequency));
     }
 
 
     protected:
-    
-    void IntegratorCycleISR(void){
-            summation = (1.0f/f)*(*signal) + summation;
-    }
-
+    void IcycleISR(void){}
+   
 };
 
 void floatToString(float value, char *buffer) {
@@ -209,15 +203,18 @@ void rightISR(){
 void upISR(){
     // left_wheel.control_output += 0.1f;
     left_wheel.speed(left_wheel.speed()+1);
-    cls = true;
+    //cls = true;
 }
 void downISR(){
     // left_wheel.control_output -= 0.1f;
     left_wheel.speed(left_wheel.speed()-1);
-    cls = true;
+    //cls = true;
 }
 
 int main(void){
+
+    printf("Program started!\n");
+
     // Pin Setup
     // ----------------------------
     DigitalOut Bipolar1(PB_13);
@@ -244,34 +241,32 @@ int main(void){
 
     // Joystick
     // InterruptIn centre(D4);
-    InterruptIn up(PA_4);
-    InterruptIn down(PB_0);
-    InterruptIn left(PC_1);
-    InterruptIn right(D4);
+    // InterruptIn up(PA_4);
+    // InterruptIn down(PB_0);
+    // InterruptIn left(PC_1);
+    // InterruptIn right(D4);
 
-    up.rise(&upISR);
-    down.rise(&downISR);
-    left.rise(&leftISR);
-    right.rise(&rightISR);
+    // up.rise(&upISR);
+    // down.rise(&downISR);
+    // left.rise(&leftISR);
+    // right.rise(&rightISR);
 
     char buffer[50];
-    left_wheel.speed(20.0f);
+    //left_wheel.speed(20.0f);
 
     //--------------------
-     Encoder Encoder1(PA_12, PA_11);
-     float integration =0;
+    Encoder Encoder1(PA_12, PA_11);
+    Encoder1.initialise();
+     float integration = 0;
+
 
     while(1){
 
-
+        //left_wheel.update();
+        
         //left_wheel.update();
 
-        
-        left_wheel.update();
-
-
         // Display Section
-
 
         // lcd.locate(0,0);
         // //lcd.printf("Hello World");
@@ -291,15 +286,13 @@ int main(void){
         // lcd.locate(10, 20);
         // lcd.printf("i: %d", i);
 
-
-        float speed = Encoder1.speed_linear();
-        lcd.locate(0,0);
-        floatToString(speed, buffer);
-        lcd.printf("Speed: %s\n", buffer);
+        integration = integration + (Encoder1.speed_linear() * 0.001f);
+        
+        printf("Hello \n");
 
 
 
 
-        wait_us(1000);
+        wait_us(1000000);
     }
 }
