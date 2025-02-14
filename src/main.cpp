@@ -160,7 +160,8 @@ void floatToString(float value, char *buffer) {
     buffer[index] = '\0';
 }
 
-Wheel left_wheel(0.0192f, PA_12, PA_11, PC_6, 1.0f);
+Wheel right_wheel(0.0192f, PA_12, PA_11, PC_6, 1.0f);
+Wheel left_wheel(0.0192f, PA_13, PA_14, PC_8, 1.0f);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
@@ -173,42 +174,42 @@ void refreshDisplay() {
 
     lcd.locate(0,0);
     // lcd.printf("Hello World");
-    floatToString(left_wheel.proportional_gain, buffer);
+    floatToString(right_wheel.proportional_gain, buffer);
     lcd.printf("Kp: %s\n", buffer);
     lcd.locate(80,0);
-    floatToString(left_wheel.control_output, buffer);
+    floatToString(right_wheel.control_output, buffer);
     lcd.printf("o: %s\n", buffer);
 
     lcd.locate(0,10);
-    floatToString(left_wheel.speed(), buffer);
+    floatToString(right_wheel.speed(), buffer);
     lcd.printf("s: %s\n", buffer);
     lcd.locate(80,10);
-    floatToString(left_wheel.measured_speed_angular(), buffer);
+    floatToString(right_wheel.measured_speed_angular(), buffer);
     lcd.printf("ms: %s\n", buffer);
 
     lcd.locate(0,20);
-    floatToString(left_wheel.error(), buffer);
+    floatToString(right_wheel.error(), buffer);
     lcd.printf("e: %s\n", buffer);
 }
 
 // kp debugging
 float dKp = 0.0001f;
 void leftISR(){
-    left_wheel.proportional_gain = left_wheel.proportional_gain - dKp;
+    right_wheel.proportional_gain = right_wheel.proportional_gain - dKp;
     cls = true;
 }
 void rightISR(){
-    left_wheel.proportional_gain = left_wheel.proportional_gain + dKp;
+    right_wheel.proportional_gain = right_wheel.proportional_gain + dKp;
     cls = true;
 }
 void upISR(){
-    // left_wheel.control_output += 0.1f;
-    left_wheel.speed(left_wheel.speed()+1);
+    // right_wheel.control_output += 0.1f;
+    right_wheel.speed(right_wheel.speed()+1);
     cls = true;
 }
 void downISR(){
-    // left_wheel.control_output -= 0.1f;
-    left_wheel.speed(left_wheel.speed()-1);
+    // right_wheel.control_output -= 0.1f;
+    right_wheel.speed(right_wheel.speed()-1);
     cls = true;
 }
 
@@ -229,7 +230,7 @@ int main(void){
     DigitalOut Direction2(PB_1);
     Direction2.write(1);
 
-    PwmOut Motor2(PC_8);
+    // PwmOut Motor2(PC_8);
 
     DigitalOut Enable(PB_2);
     Enable.write(1);
@@ -248,21 +249,20 @@ int main(void){
     right.rise(&rightISR);
 
     // Motor1.write(1.0f);
+    // Motor2.write(1.0f);
 
-    Motor2.period_us(45);
-    Motor2.write(1.0f);
-
-    left_wheel.speed(30.0f);
+    right_wheel.speed(30.0f);
+    // right_wheel.speed(30.0f);
 
     while(1){
         
-        left_wheel.update();
+        right_wheel.update();
 
         refreshDisplay();
 
-        floatToString(left_wheel.desired_speed, buffer);
+        floatToString(right_wheel.desired_speed, buffer);
         printf(">ds:%s,", buffer);
-        floatToString(left_wheel.measured_speed_angular(), buffer);
+        floatToString(right_wheel.measured_speed_angular(), buffer);
         printf("rs:%s\n", buffer);
     }
 }
