@@ -3,10 +3,17 @@
 #include "classes.h"
 
 
+Encoder Encoder1(PA_11,PA_12);
+//Encoder Encoder2(,);
 
-void integration_updateISR(void){
-    
+
+volatile float summation = 0;
+void integration_updateISR_r(void){
+summation = summation + 0.001f * (Encoder1.speed_linear());
 }
+
+
+
 
 int main(void){
     // Pin Setup
@@ -32,12 +39,15 @@ int main(void){
     // ----------------------------
 
     // Encoders setup
-    Encoder Encoder1(PA_11,PA_12);
-    Encoder Encoder2(PA_13, PA_14);
+
+
 
     //Timers
-    Ticker Integrator_t;
-    Integrator_t.attach(&integration_updateISR,0.01f)
+    Ticker Integrator_t_r;
+    Integrator_t_r.attach(&integration_updateISR_r,0.01f);
+
+
+
 
 
     while(1){
