@@ -159,7 +159,7 @@ void floatToString(float value, char *buffer) {
     sprintf(buffer, "%d.%.3d", int_part, decimal_int);
 }
 
-Wheel left_wheel(1.0f, 0.0f, 0.0f, PA_12, PA_11, PC_6);
+Wheel left_wheel(1.0f, PA_12, PA_11, PC_6);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
@@ -235,8 +235,6 @@ int main(void){
     DigitalOut Enable(PB_2);
     Enable.write(1);
     // ----------------------------
-
-    C12832 lcd(D11, D13, D12, D7, D10);
 
     // Joystick
     InterruptIn centre(D4);
