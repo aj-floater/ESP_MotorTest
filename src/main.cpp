@@ -78,7 +78,6 @@ public:
     // Set speed in rad/s
     float speed(float s){
         desired_speed = s;
-        control_output = 1 - s/50;
         return 0;
     }
     float speed(){
@@ -104,9 +103,10 @@ public:
     void update(){
         // Clamp final output to 0.0f and 1.0f
         // pControl();
+        control_output = 1 - desired_speed/50;
 
         if (control_output < 0.0f) control_output = 0.0f;
-        else if (control_output > 1.0f) control_output = 0.8f;
+        else if (control_output > 1.0f) control_output = 1.0f;
 
         motor.write(control_output);
     }
