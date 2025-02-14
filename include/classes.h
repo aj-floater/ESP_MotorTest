@@ -112,6 +112,13 @@ class Wheel {
         }
     };
 
+    // This class creates Integrator objects. 
+    // Why? the code will be long and throughout it we will certainly need to perform simultaneous integrations
+    //      and perhaps they need to have different frequencies.
+    // How? it will make use of the Ticker API from Mbed to perform the integration. 
+    // Note: parameter of the start member function must be a pointer to a function (was not covered in MCEII)
+    //       , and it has to have type float and no parameters.
+    // If you face problems using this class, ask me (Hamed) :)
 class Integrator{
 
     private:
@@ -135,6 +142,10 @@ class Integrator{
                 printf("FunctionPointer assigned: %p\n", FunctionPointer);
                 I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
             }
+        }
+
+        void stop(void){
+            I_cycle.detach();
         }
         
 
