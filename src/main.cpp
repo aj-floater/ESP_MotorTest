@@ -4,26 +4,13 @@
 #include "functions.h"
 
 
-Encoder Encoder1(PA_11,PA_12);
-//Encoder Encoder2(,);
-
-
-volatile float summation = 0;
-void integration_updateISR_r(void){
-summation = summation + 0.001f * (Encoder1.speed_linear());
-}
-
-float returnone(void){
-    return 1.0f;
-}
-
 
 int main(void){
 
+
     // Pointers to functions
-        //float (Encoder::*EncoderSpeedLinearPTR)();
-        float (* returnonePTR)();
-        returnonePTR = returnone;
+        float (Encoder::*PtrToEncoderLSpeed)() = &Encoder::speed_linear;
+        float (Encoder::*PtrToEncoderASpeed)() = &Encoder::speed_angular;
 
     
     // Pin Setup
@@ -48,22 +35,35 @@ int main(void){
     
 
     // Encoders setup
+    Encoder Encoder1(PA_11,PA_12);
+    //Encoder Encoder2(,);
 
     // Integrator setup
         Integrator I1(10.0f);
-        I1.start(returnonePTR);
+        I1.start(&Encoder1, PtrToEncoderLSpeed);
+        Integrator I2(10.0f);
+        I1.start(&Encoder2, PtrToEncoderLSpeed);
 
     // float issue
         char buffer[50];
 
     while(1){
 
-        floatToString(I1.getvalue(),buffer);
+        do
+        {
+            Motor1.write(0.3f);
+            Motor2.write(0.3f);
 
-        printf("Integration = %s \n", buffer);
+        } while ((I1.getvalue() <= 0.5)&&(I2.getvalue() <= 0.5));
 
+        I1.stop();
+        I2.stop();
 
-        wait_us(100000);
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
+        
+        while(1){}
+
         
      
     }

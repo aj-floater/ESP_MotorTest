@@ -130,6 +130,8 @@ class Integrator{
     public:
 
         float (*FunctionPointer)(void);
+        void* ObjectPtr = nullptr;  // Generic object pointer for member function
+        float (Integrator::*MemberFunctionPointer)(void) = nullptr;  // Member function pointer
 
         Integrator(float freq):frequency(freq){};
 
@@ -143,6 +145,26 @@ class Integrator{
                 I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
             }
         }
+
+            // Overloaded start() for member function pointers
+        template <typename T>
+        void start(T* obj, float (T::*FcnPtr)(void)) {
+            if (!obj || !FcnPtr) {
+            printf("ERROR: FunctionPointer is NULL in start()!\n");
+            return;
+            }
+            ObjectPtr = obj;
+            MemberFunctionPointer = reinterpret_cast<float (Integrator::*)(void)>(FcnPtr);
+            FunctionPointer = nullptr;  // Disable normal function pointer
+
+            I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
+        }
+
+        void reset(void){
+            summation = 0;
+        }
+
+
 
         void stop(void){
             I_cycle.detach();
