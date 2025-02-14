@@ -111,3 +111,40 @@ class Wheel {
             motor.write(control_output);
         }
     };
+
+class Integrator{
+
+    private:
+
+    float frequency;
+    Ticker I_cycle;
+    float volatile summation = 0;
+
+    public:
+
+        float (*FunctionPointer)(void);
+
+        Integrator(float freq):frequency(freq){};
+
+        void start(float (*FcnPtr)(void)) {
+            FunctionPointer = FcnPtr;  // Assign function pointer before using it
+            
+            if (FunctionPointer == nullptr) {
+                printf("ERROR: FunctionPointer is NULL in start()!\n");
+            } else {
+                printf("FunctionPointer assigned: %p\n", FunctionPointer);
+                I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
+            }
+        }
+        
+
+        float getvalue(void){
+            return summation;
+        }
+
+    protected:
+
+        void UpdateISR(void){
+            summation = summation + (1.0f/frequency)*FunctionPointer();
+        }
+};
