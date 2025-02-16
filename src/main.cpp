@@ -11,15 +11,14 @@ class Encoder {
     volatile int countA = 0, countB = 0;
     
 
-    Encoder(PinName ChA, PinName ChB) : ChanelA(ChA), ChanelB(ChB){}
-
-    void initialise(void){
-        
+    Encoder(PinName ChA, PinName ChB) : 
+        ChanelA(ChA), 
+        ChanelB(ChB)
+    {
         Encoder_dt.attach(callback(this,&Encoder::EncoderCycleISR), dt);
         
         ChanelA.rise(callback(this,&Encoder::ChanelA_countISR));
         ChanelB.rise(callback(this,&Encoder::ChanelB_countISR));
-
     }
 
     float speed_linear(void){
@@ -33,7 +32,6 @@ class Encoder {
     }
 
     protected:
-
     void EncoderCycleISR(void){
         EncoderTick = (float(countA)/dt);
         countA = 0; countB = 0;
@@ -41,6 +39,7 @@ class Encoder {
 
     void ChanelA_countISR(void){countA++;}
     void ChanelB_countISR(void){countB++;}
+
 };
 
 class Wheel {
@@ -57,13 +56,11 @@ public:
     Encoder encoder;
     PwmOut motor;
 
-    Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
+    Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm) : 
         proportional_gain(Kp), 
         encoder(ChA, ChB),
         motor(pwm)
     {
-        encoder.initialise();
-
         motor.period_us(45);
         motor.write(1.0f);
 
@@ -72,8 +69,12 @@ public:
         control_output = 1.0f;
     }
 
-    float measured_speed_angular() { return encoder.speed_angular(); };
-    float measured_speed_linear() { return encoder.speed_linear(); };
+    float measured_speed_angular() { 
+        return encoder.speed_angular(); 
+    };
+    float measured_speed_linear() { 
+        return encoder.speed_linear(); 
+    };
 
     // Set speed in rad/s
     float speed(float s){
@@ -102,7 +103,7 @@ public:
 
     void update(){
         // Clamp final output to 0.0f and 1.0f
-        // pControl();
+        pControl();
         control_output = 1 - desired_speed/50;
 
         if (control_output < 0.0f) control_output = 0.0f;
@@ -160,8 +161,10 @@ void floatToString(float value, char *buffer) {
     buffer[index] = '\0';
 }
 
-Wheel right_wheel(0.0192f, PA_12, PA_11, PC_6, 1.0f);
-Wheel left_wheel(0.0192f, PA_13, PA_14, PC_8, 1.0f);
+// Encoder encoder1(PA_12, PA_11);
+Wheel right_wheel(0.0192f, PA_12, PA_11, PC_6);
+// Encoder encoder2(PC_7, PA_9);
+Wheel left_wheel(0.0192f, PC_7, PA_9, PB_1);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
@@ -227,7 +230,7 @@ int main(void){
     DigitalOut Bipolar2(PB_15);
     Bipolar2.write(0);
 
-    DigitalOut Direction2(PB_1);
+    DigitalOut Direction2(PC_8);
     Direction2.write(1);
 
     // PwmOut Motor2(PC_8);
@@ -252,10 +255,9 @@ int main(void){
     // Motor2.write(1.0f);
 
     right_wheel.speed(30.0f);
-    // right_wheel.speed(30.0f);
+    left_wheel.speed(30.0f);
 
     while(1){
-        
         right_wheel.update();
 
         refreshDisplay();
