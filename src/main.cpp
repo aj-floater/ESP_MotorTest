@@ -16,15 +16,14 @@ class Encoder {
     volatile int countA = 0, countB = 0;
     
 
-    Encoder(PinName ChA, PinName ChB) : ChanelA(ChA), ChanelB(ChB){}
-
-    void initialise(void){
-        
+    Encoder(PinName ChA, PinName ChB) : 
+        ChanelA(ChA), 
+        ChanelB(ChB)
+    {
         Encoder_dt.attach(callback(this,&Encoder::EncoderCycleISR), dt);
         
         ChanelA.rise(callback(this,&Encoder::ChanelA_countISR));
         ChanelB.rise(callback(this,&Encoder::ChanelB_countISR));
-
     }
 
     float speed_linear(void){
@@ -38,7 +37,6 @@ class Encoder {
     }
 
     protected:
-
     void EncoderCycleISR(void){
 
         EncoderTick = (float(countA)/dt);
@@ -47,6 +45,7 @@ class Encoder {
 
     void ChanelA_countISR(void){countA++;}
     void ChanelB_countISR(void){countB++;}
+
 };
 
 // This section will define a Wheel class, allowing users to set a target angular (or linear) velocity.
@@ -64,63 +63,81 @@ public:
     float measured_speed;
 
     float proportional_gain;
+    float integral_gain;
+    float derivative_gain;
+    
     float previous_error;
+    float integral_error;
 
     float control_output;
 
     Encoder encoder;
     PwmOut motor;
 
-    Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm) : 
+    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm) : 
         proportional_gain(Kp), 
+        integral_gain(Ki),
+        derivative_gain(Kd),
         encoder(ChA, ChB),
         motor(pwm)
     {
-        encoder.initialise();
-
         motor.period_us(45);
         motor.write(1.0f);
 
         desired_speed = 0.0f;
         measured_speed = 0.0f;
         control_output = 1.0f;
+        
+        previous_error = 0.0f;
+        integral_error = 0.0f;
     }
 
-    float measured_speed_angular() { return encoder.speed_angular(); };
-    float measured_speed_linear() { return encoder.speed_linear(); };
+    float measured_speed_angular() { 
+        return encoder.speed_angular(); 
+    };
+    float measured_speed_linear() { 
+        return encoder.speed_linear(); 
+    };
 
     // Set speed in rad/s
     float speed(float s){
         desired_speed = s;
-        control_output = 1 - s/45;
         return 0;
     }
     float speed(){
         return desired_speed;
     }
 
-    // Calculate the error e(t) = Desired Speed − Measured Speed
+    // Calculate the error e(t) = Desired Speed − Measured Speed
     float error(){
-        return measured_speed_angular() - desired_speed;
+        return desired_speed - measured_speed_angular();
     }
 
-    // Calculate the control output (ie the PWM duty cycle)
-    void pControl(){
-        float Et = error(); // gets the error at the current time
-
+    // PID Control
+    void pidControl(){
+        float Et = error(); // Current error
+        
+        integral_error += Et; // Integrate the error
+        float derivative_term = Et - previous_error; // Derivative term
+        
         float proportional_term = proportional_gain * Et;
-        control_output += proportional_term;
+        float integral_term = integral_gain * integral_error;
+        float derivative_control = derivative_gain * derivative_term;
+        
+        control_output = proportional_term + integral_term + derivative_control;
 
         // Setup values for next iteration
         previous_error = Et;
     }
 
     void update(){
+        // Update control
+        pidControl();
+        // control_output = 1 - desired_speed/50;
+        
         // Clamp final output to 0.0f and 1.0f
-        // pControl();
-
         if (control_output < 0.0f) control_output = 0.0f;
-        else if (control_output > 1.0f) control_output = 0.8f;
+        else if (control_output > 1.0f) control_output = 1.0f;
 
         motor.write(control_output);
     }
@@ -159,7 +176,10 @@ void floatToString(float value, char *buffer) {
     sprintf(buffer, "%d.%.3d", int_part, decimal_int);
 }
 
-Wheel left_wheel(1.0f, PA_12, PA_11, PC_6);
+// Encoder encoder1(PA_12, PA_11);
+Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6);
+// Encoder encoder2(PC_7, PA_9);
+Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PB_1);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
@@ -172,21 +192,21 @@ void refreshDisplay() {
 
     lcd.locate(0,0);
     // lcd.printf("Hello World");
-    floatToString(left_wheel.proportional_gain, buffer);
+    floatToString(right_wheel.proportional_gain, buffer);
     lcd.printf("Kp: %s\n", buffer);
     lcd.locate(80,0);
-    floatToString(left_wheel.control_output, buffer);
+    floatToString(right_wheel.control_output, buffer);
     lcd.printf("o: %s\n", buffer);
 
     lcd.locate(0,10);
-    floatToString(left_wheel.speed(), buffer);
+    floatToString(right_wheel.speed(), buffer);
     lcd.printf("s: %s\n", buffer);
     lcd.locate(80,10);
-    floatToString(left_wheel.measured_speed_angular(), buffer);
+    floatToString(right_wheel.measured_speed_angular(), buffer);
     lcd.printf("ms: %s\n", buffer);
 
     lcd.locate(0,20);
-    floatToString(left_wheel.error(), buffer);
+    floatToString(right_wheel.error(), buffer);
     lcd.printf("e: %s\n", buffer);
 }
 
@@ -194,20 +214,22 @@ void refreshDisplay() {
 float Kp = 0.0f;
 float dKp = 0.1f;
 void leftISR(){
-    Kp = Kp - dKp;
+    right_wheel.proportional_gain = right_wheel.proportional_gain - dKp;
+    cls = true;
 }
 void rightISR(){
-    Kp = Kp + dKp;
+    right_wheel.proportional_gain = right_wheel.proportional_gain + dKp;
+    cls = true;
 }
 void upISR(){
-    // left_wheel.control_output += 0.1f;
-    left_wheel.speed(left_wheel.speed()+1);
-    //cls = true;
+    // right_wheel.control_output += 0.1f;
+    right_wheel.speed(right_wheel.speed()+1);
+    cls = true;
 }
 void downISR(){
-    // left_wheel.control_output -= 0.1f;
-    left_wheel.speed(left_wheel.speed()-1);
-    //cls = true;
+    // right_wheel.control_output -= 0.1f;
+    right_wheel.speed(right_wheel.speed()-1);
+    cls = true;
 }
 
 int main(void){
@@ -227,10 +249,10 @@ int main(void){
     DigitalOut Bipolar2(PB_15);
     Bipolar2.write(0);
 
-    DigitalOut Direction2(PB_1);
+    DigitalOut Direction2(PC_8);
     Direction2.write(1);
 
-    PwmOut Motor2(PC_8);
+    // PwmOut Motor2(PC_8);
 
     DigitalOut Enable(PB_2);
     Enable.write(1);
@@ -248,21 +270,20 @@ int main(void){
     left.rise(&leftISR);
     right.rise(&rightISR);
 
-    char buffer[50];
-    left_wheel.speed(20.0f);
+    // Motor1.write(1.0f);
+    // Motor2.write(1.0f);
 
-    //--------------------
-
+    right_wheel.speed(30.0f);
+    left_wheel.speed(30.0f);
 
     while(1){
-        // Display Section
+        right_wheel.update();
 
-        left_wheel.update();
         refreshDisplay();
 
-        floatToString(left_wheel.desired_speed, buffer);
+        floatToString(right_wheel.desired_speed, buffer);
         printf(">ds:%s,", buffer);
-        floatToString(left_wheel.measured_speed_angular(), buffer);
+        floatToString(right_wheel.measured_speed_angular(), buffer);
         printf("rs:%s\n", buffer);
     }
 }
