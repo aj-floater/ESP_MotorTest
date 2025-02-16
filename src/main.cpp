@@ -49,15 +49,21 @@ public:
     float measured_speed;
 
     float proportional_gain;
+    float integral_gain;
+    float derivative_gain;
+    
     float previous_error;
+    float integral_error;
 
     float control_output;
 
     Encoder encoder;
     PwmOut motor;
 
-    Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm) : 
+    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm) : 
         proportional_gain(Kp), 
+        integral_gain(Ki),
+        derivative_gain(Kd),
         encoder(ChA, ChB),
         motor(pwm)
     {
@@ -67,6 +73,9 @@ public:
         desired_speed = 0.0f;
         measured_speed = 0.0f;
         control_output = 1.0f;
+        
+        previous_error = 0.0f;
+        integral_error = 0.0f;
     }
 
     float measured_speed_angular() { 
@@ -85,27 +94,34 @@ public:
         return desired_speed;
     }
 
-    // Calculate the error e(t) = Desired Speed − Measured Speed
+    // Calculate the error e(t) = Desired Speed − Measured Speed
     float error(){
-        return measured_speed_angular() - desired_speed;
+        return desired_speed - measured_speed_angular();
     }
 
-    // Calculate the control output (ie the PWM duty cycle)
-    void pControl(){
-        float Et = error(); // gets the error at the current time
-
+    // PID Control
+    void pidControl(){
+        float Et = error(); // Current error
+        
+        integral_error += Et; // Integrate the error
+        float derivative_term = Et - previous_error; // Derivative term
+        
         float proportional_term = proportional_gain * Et;
-        control_output += proportional_term;
+        float integral_term = integral_gain * integral_error;
+        float derivative_control = derivative_gain * derivative_term;
+        
+        control_output = proportional_term + integral_term + derivative_control;
 
         // Setup values for next iteration
         previous_error = Et;
     }
 
     void update(){
+        // Update control
+        pidControl();
+        // control_output = 1 - desired_speed/50;
+        
         // Clamp final output to 0.0f and 1.0f
-        pControl();
-        control_output = 1 - desired_speed/50;
-
         if (control_output < 0.0f) control_output = 0.0f;
         else if (control_output > 1.0f) control_output = 1.0f;
 
@@ -162,9 +178,9 @@ void floatToString(float value, char *buffer) {
 }
 
 // Encoder encoder1(PA_12, PA_11);
-Wheel right_wheel(0.0192f, PA_12, PA_11, PC_6);
+Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6);
 // Encoder encoder2(PC_7, PA_9);
-Wheel left_wheel(0.0192f, PC_7, PA_9, PB_1);
+Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PB_1);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
