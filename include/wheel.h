@@ -44,6 +44,8 @@ public:
         
         previous_error = 0.0f;
         integral_error = 0.0f;
+
+        direction.write(1);
     }
 
     float measured_speed_angular() { 
@@ -55,6 +57,13 @@ public:
 
     // Set speed in rad/s
     float speed(float s){
+        if (s < 0){
+            s = -s;
+            direction.write(0);
+        }
+        else {
+            direction.write(1);
+        }
         desired_speed = s;
         return 0;
     }
@@ -97,7 +106,7 @@ public:
     }
 };
 
-Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6);
-Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PC_8);
+Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6, PB_14);
+Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PC_8, PB_1);
 
 #endif // End of include guard
