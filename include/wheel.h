@@ -25,13 +25,15 @@ public:
 
     Encoder encoder;
     PwmOut motor;
+    DigitalOut direction;
 
-    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm) : 
+    Wheel(float Kp, float Ki, float Kd, PinName ChA, PinName ChB, PinName pwm, PinName dir) : 
         proportional_gain(Kp), 
         integral_gain(Ki),
         derivative_gain(Kd),
         encoder(ChA, ChB),
-        motor(pwm)
+        motor(pwm),
+        direction(dir)
     {
         motor.period_us(45);
         motor.write(1.0f);

@@ -12,6 +12,7 @@ class Potentiometer {
       float VDD;                     // Reference voltage
       float currentSampleNorm;       // Normalized sample (0.0 to 1.0)
       float currentSampleVolts;      // Sample in volts
+      float range[2];
   
       // Function to truncate a float to 2 decimal places
       float truncateTo2DP(float value) const {
@@ -33,11 +34,18 @@ class Potentiometer {
       }
   
       float getCurrentSampleNorm(void) {
-          return truncateTo2DP(currentSampleNorm);
+        // Map currentSampleNorm (0.0 - 1.0) to the custom range
+        float mappedValue = range[0] + (currentSampleNorm * (range[1] - range[0]));
+        return truncateTo2DP(mappedValue);
       }
   
       float getCurrentSampleVolts(void) {
           return currentSampleVolts;
+      }
+
+      void setRange(float s, float e){
+        range[0] = s;
+        range[1] = e;
       }
   };
   
@@ -55,5 +63,8 @@ class Potentiometer {
           sampler.attach(callback(this, &SamplingPotentiometer::sample), samplingPeriod);
       }
   };
+
+SamplingPotentiometer LeftPot(A0, 3.3, 10);
+SamplingPotentiometer RightPot(A1, 3.3, 10);
 
 #endif // End of include guard

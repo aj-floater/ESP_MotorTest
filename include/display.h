@@ -7,54 +7,6 @@
 #include "wheel.h"
 
 void floatToString(float value, char *buffer);
-class Display;
-
-Display display(D11, D13, D12, D7, D10);
-
-class Display {
-private:
-    C12832 lcd;
-    bool screenNeedsRefresh;
-    char buffer[50];  // Buffer for number-to-string conversion
-
-public:
-    // Constructor
-    Display(PinName mosi, PinName sck, PinName reset, PinName a0, PinName ncs)
-        : lcd(mosi, sck, reset, a0, ncs), screenNeedsRefresh(false) {}
-
-    // Method to mark display for refresh
-    void markRefreshNeeded() {
-        screenNeedsRefresh = true;
-    }
-
-    // Method to refresh display
-    void refresh() {
-        if (screenNeedsRefresh) {
-            lcd.cls();
-            screenNeedsRefresh = false;
-        }
-
-        lcd.locate(0, 0);
-        floatToString(right_wheel.proportional_gain, buffer);
-        lcd.printf("Kp: %s\n", buffer);
-
-        lcd.locate(80, 0);
-        floatToString(right_wheel.control_output, buffer);
-        lcd.printf("Kd: %s\n", buffer);
-
-        lcd.locate(0, 10);
-        floatToString(right_wheel.speed(), buffer);
-        lcd.printf("s: %s\n", buffer);
-
-        lcd.locate(80, 10);
-        floatToString(right_wheel.measured_speed_angular(), buffer);
-        lcd.printf("ms: %s\n", buffer);
-
-        lcd.locate(0, 20);
-        floatToString(right_wheel.error(), buffer);
-        lcd.printf("e: %s\n", buffer);
-    }
-};
 
 // Helper function to convert float to string
 void floatToString(float value, char *buffer) {
@@ -101,5 +53,56 @@ void floatToString(float value, char *buffer) {
     // Null-terminate string
     buffer[index] = '\0';
 }
+
+class Display {
+private:
+    C12832 lcd;
+    bool screenNeedsRefresh;
+    char buffer[50];  // Buffer for number-to-string conversion
+
+public:
+    // Constructor
+    Display(PinName mosi, PinName sck, PinName reset, PinName a0, PinName ncs)
+        : lcd(mosi, sck, reset, a0, ncs), screenNeedsRefresh(false) {}
+
+    // Method to mark display for refresh
+    void markRefreshNeeded() {
+        screenNeedsRefresh = true;
+    }
+
+    // Method to refresh display
+    void refresh() {
+        if (screenNeedsRefresh) {
+            lcd.cls();
+            screenNeedsRefresh = false;
+        }
+
+        lcd.locate(0, 0);
+        floatToString(right_wheel.proportional_gain, buffer);
+        lcd.printf("Kp: %s\n", buffer);
+
+        lcd.locate(80, 0);
+        floatToString(right_wheel.derivative_gain, buffer);
+        lcd.printf("Kd: %s\n", buffer);
+
+        lcd.locate(0, 10);
+        floatToString(right_wheel.speed(), buffer);
+        lcd.printf("s: %s\n", buffer);
+
+        lcd.locate(80, 10);
+        floatToString(right_wheel.measured_speed_angular(), buffer);
+        lcd.printf("ms: %s\n", buffer);
+
+        lcd.locate(0, 20);
+        floatToString(right_wheel.error(), buffer);
+        lcd.printf("e: %s\n", buffer);
+
+        lcd.locate(80, 20);
+        floatToString(right_wheel.control_output, buffer);
+        lcd.printf("o: %s\n", buffer);
+    }
+};
+
+Display display(D11, D13, D12, D7, D10);
 
 #endif // DISPLAY_H
