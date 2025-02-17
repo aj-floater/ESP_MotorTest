@@ -177,10 +177,13 @@ void floatToString(float value, char *buffer) {
     buffer[index] = '\0';
 }
 
+float Kp = 0.0192f;
+float Kd = 0.0001f;
+
 // Encoder encoder1(PA_12, PA_11);
 Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6);
 // Encoder encoder2(PC_7, PA_9);
-Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PB_1);
+Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PC_8);
 
 bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
@@ -213,14 +216,6 @@ void refreshDisplay() {
 
 // kp debugging
 float dKp = 0.0001f;
-void leftISR(){
-    right_wheel.proportional_gain = right_wheel.proportional_gain - dKp;
-    cls = true;
-}
-void rightISR(){
-    right_wheel.proportional_gain = right_wheel.proportional_gain + dKp;
-    cls = true;
-}
 void upISR(){
     // right_wheel.control_output += 0.1f;
     right_wheel.speed(right_wheel.speed()+1);
@@ -246,7 +241,7 @@ int main(void){
     DigitalOut Bipolar2(PB_15);
     Bipolar2.write(0);
 
-    DigitalOut Direction2(PC_8);
+    DigitalOut Direction2(PB_1);
     Direction2.write(1);
 
     // PwmOut Motor2(PC_8);
@@ -264,8 +259,6 @@ int main(void){
 
     up.rise(&upISR);
     down.rise(&downISR);
-    left.rise(&leftISR);
-    right.rise(&rightISR);
 
     // Motor1.write(1.0f);
     // Motor2.write(1.0f);
