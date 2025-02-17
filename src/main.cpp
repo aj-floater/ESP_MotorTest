@@ -1,7 +1,60 @@
 #include "mbed.h"
 #include "C12832.h"
-class Encoder {
 
+bool screenNeedsRefresh = false;
+
+// Potentiometer class
+class Potentiometer {
+private:
+    AnalogIn inputSignal;          // Analog input pin
+    float VDD;                     // Reference voltage
+    float currentSampleNorm;       // Normalized sample (0.0 to 1.0)
+    float currentSampleVolts;      // Sample in volts
+
+    // Function to truncate a float to 2 decimal places
+    float truncateTo2DP(float value) const {
+        return floor(value * 100) / 100.0f;
+    }
+
+public:
+    Potentiometer(PinName pin, float v) : inputSignal(pin), VDD(v) {
+        currentSampleNorm = inputSignal.read();
+    }
+
+    void sample(void) {
+        if (inputSignal.read() == currentSampleNorm){
+            screenNeedsRefresh = true;
+        }
+
+        currentSampleNorm = inputSignal.read();  // Read normalized value
+        currentSampleVolts = currentSampleNorm * VDD; // Convert to volts
+    }
+
+    float getCurrentSampleNorm(void) {
+        return truncateTo2DP(currentSampleNorm);
+    }
+
+    float getCurrentSampleVolts(void) {
+        return currentSampleVolts;
+    }
+};
+
+// SamplingPotentiometer class inheriting from Potentiometer
+class SamplingPotentiometer : public Potentiometer {
+private:
+    float samplingFrequency;        // Sampling frequency in Hz
+    float samplingPeriod;           // Sampling period in seconds
+    Ticker sampler;                 // Ticker object for periodic sampling
+
+public:
+    SamplingPotentiometer(PinName p, float v, float fs)
+        : Potentiometer(p, v), samplingFrequency(fs) {
+        samplingPeriod = 1.0f / samplingFrequency;  // Calculate period
+        sampler.attach(callback(this, &SamplingPotentiometer::sample), samplingPeriod);
+    }
+};
+
+class Encoder {
     public:
 
     InterruptIn ChanelA, ChanelB;
@@ -41,7 +94,6 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 
 };
-
 class Wheel {
 private:
 public:
@@ -177,21 +229,26 @@ void floatToString(float value, char *buffer) {
     buffer[index] = '\0';
 }
 
+void modify(float Kp, float Kd){
+    right_wheel.proportional_gain = Kp;
+    left_wheel.proportional_gain = Kp;
+    
+    right_wheel.derivative_gain = Kd;
+    left_wheel.derivative_gain = Kd;
+}
+
 float Kp = 0.0192f;
 float Kd = 0.0001f;
 
-// Encoder encoder1(PA_12, PA_11);
 Wheel right_wheel(0.0192f, 0.0f, 0.0192f, PA_12, PA_11, PC_6);
-// Encoder encoder2(PC_7, PA_9);
 Wheel left_wheel(0.0192f, 0.0f, 0.0192f, PC_7, PA_9, PC_8);
 
-bool cls = false;
 C12832 lcd(D11, D13, D12, D7, D10);
 char buffer[50];
 void refreshDisplay() {
-    if (cls) {
+    if (screenNeedsRefresh) {
         lcd.cls();
-        cls = false;
+        screenNeedsRefresh = false;
     }
 
     lcd.locate(0,0);
@@ -200,7 +257,7 @@ void refreshDisplay() {
     lcd.printf("Kp: %s\n", buffer);
     lcd.locate(80,0);
     floatToString(right_wheel.control_output, buffer);
-    lcd.printf("o: %s\n", buffer);
+    lcd.printf("Kd: %s\n", buffer);
 
     lcd.locate(0,10);
     floatToString(right_wheel.speed(), buffer);
@@ -215,16 +272,15 @@ void refreshDisplay() {
 }
 
 // kp debugging
-float dKp = 0.0001f;
 void upISR(){
     // right_wheel.control_output += 0.1f;
     right_wheel.speed(right_wheel.speed()+1);
-    cls = true;
+    screenNeedsRefresh = true;
 }
 void downISR(){
     // right_wheel.control_output -= 0.1f;
     right_wheel.speed(right_wheel.speed()-1);
-    cls = true;
+    screenNeedsRefresh = true;
 }
 
 int main(void){
