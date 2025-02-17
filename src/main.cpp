@@ -4,7 +4,6 @@
 #include "functions.h"
 
 
-
 int main(void){
 
 
@@ -36,35 +35,84 @@ int main(void){
 
     // Encoders setup
     Encoder Encoder1(PA_11,PA_12);
-    //Encoder Encoder2(,);
+    Encoder Encoder2(PC_7,PA_9);
+
+    Encoder1.initialise();
+    Encoder2.initialise();
 
     // Integrator setup
-        Integrator I1(10.0f);
-        I1.start(&Encoder1, PtrToEncoderLSpeed);
+        Integrator I1(100.0f);
+        I1.start(callback(&Encoder1,&Encoder::speed_linear));
         Integrator I2(10.0f);
-        I1.start(&Encoder2, PtrToEncoderLSpeed);
+        I2.start(callback(&Encoder2,&Encoder::speed_linear));
+
+        Integrator I3(10.0f);
+        auto RobotAngularV_Callback = [&]() -> float {
+            return RobotAngularV(Encoder1, Encoder2);
+        };
+        I3.start(RobotAngularV_Callback);
 
     // float issue
-        char buffer[50];
+        char buffer1[50];
+        char buffer2[50];
+
+        float speed, distance;
+
+        
+
 
     while(1){
 
-        do
-        {
-            Motor1.write(0.3f);
-            Motor2.write(0.3f);
+        // Motor1.write(1.0f);
+        // Motor2.write(1.0f);
 
-        } while ((I1.getvalue() <= 0.5)&&(I2.getvalue() <= 0.5));
 
-        I1.stop();
-        I2.stop();
+        // wait_us(5000000);
 
-        Motor1.write(1.0f);
-        Motor2.write(1.0f);
+
+
+        // do
+        // {
+        //     Motor1.write(0.7f);
+        //     Motor2.write(0.7f);
+
+        // } while ((I1.getIntegral() <= 0.5)&&(I2.getIntegral() <= 0.5));
+
+        // I1.stop();
+        // I2.stop();
+
+        // Motor1.write(1.0f);
+        // Motor2.write(1.0f);
+
+        // wait_us(1000000);
+
+
+        // I3.reset();
+        // Direction2.write(0);
+        // do{
+        // Motor1.write(0.7f);
+        // Motor2.write(0.7f);
+        // }while(I3.getIntegral() <= 3.141519f/2.0f);
+
+        // Direction2.write(1);
+        // Motor1.write(1.0f);
+        // Motor2.write(1.0f);
+
+        // do
+        // {
+        //     Motor1.write(0.7f);
+        //     Motor2.write(0.7f);
+
+        // } while ((I1.getIntegral() <= 0.5)&&(I2.getIntegral() <= 0.5));
+
         
-        while(1){}
-
+        // while(1){}       
         
+        floatToString(RobotAngularV(Encoder1, Encoder2), buffer1);
+        floatToString(I3.getIntegral(), buffer2);
+        printf("AngularV: %s,  Angle: %s,  R_direction: %d,  L_direction: %d\n", buffer1, buffer2, Encoder1.direction, Encoder2.direction);
+
+        wait_us(100000);
      
     }
 }

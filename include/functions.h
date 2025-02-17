@@ -1,4 +1,4 @@
-#include "mbed.h" #
+#include "mbed.h" 
 
 void floatToString(float value, char *buffer) {
     // Handle negative numbers
@@ -47,3 +47,7 @@ void floatToString(float value, char *buffer) {
     // Null-terminate string
     buffer[index] = '\0';
 }
+
+float RobotAngularV(Encoder& Encoder1, Encoder& Encoder2) {
+    float RobotAngularSpeed = ((Encoder1.speed_linear() - Encoder2.speed_linear()) / 0.173f);
+    return RobotAngularSpeed;}

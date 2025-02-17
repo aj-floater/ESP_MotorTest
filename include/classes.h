@@ -6,9 +6,10 @@ class Encoder {
 
     InterruptIn ChanelA, ChanelB;
     Ticker Encoder_dt; 
-    float dt = 0.1;
+    float dt = 0.01;
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
+    volatile bool direction = true;  // true = clockwise, false = counterclockwise
     
 
     Encoder(PinName ChA, PinName ChB) : ChanelA(ChA), ChanelB(ChB){}
@@ -16,6 +17,7 @@ class Encoder {
     void initialise(void){
         
         Encoder_dt.attach(callback(this,&Encoder::EncoderCycleISR), dt);
+
         
         ChanelA.rise(callback(this,&Encoder::ChanelA_countISR));
         ChanelB.rise(callback(this,&Encoder::ChanelB_countISR));
@@ -24,7 +26,8 @@ class Encoder {
 
     float speed_linear(void){
         float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
-        float wheelVelocity = 0.08f * radPERseconds;
+        float wheelVelocity = 0.078f * 0.5f * radPERseconds;
+
         return wheelVelocity;
     }
     float speed_angular(void){
@@ -39,7 +42,13 @@ class Encoder {
         countA = 0; countB = 0;
     }
 
-    void ChanelA_countISR(void){countA++;}
+    void ChanelA_countISR(void){
+        countA++; 
+        if (ChanelB.read()==1)
+        {
+            direction = true;
+        }else{direction = false;}}
+        
     void ChanelB_countISR(void){countB++;}
 };
 
@@ -119,65 +128,55 @@ class Wheel {
     // Note: parameter of the start member function must be a pointer to a function (was not covered in MCEII)
     //       , and it has to have type float and no parameters.
     // If you face problems using this class, ask me (Hamed) :)
-class Integrator{
-
-    private:
-
-    float frequency;
-    Ticker I_cycle;
-    float volatile summation = 0;
-
+class Integrator {
     public:
-
-        float (*FunctionPointer)(void);
-        void* ObjectPtr = nullptr;  // Generic object pointer for member function
-        float (Integrator::*MemberFunctionPointer)(void) = nullptr;  // Member function pointer
-
-        Integrator(float freq):frequency(freq){};
-
-        void start(float (*FcnPtr)(void)) {
-            FunctionPointer = FcnPtr;  // Assign function pointer before using it
-            
-            if (FunctionPointer == nullptr) {
-                printf("ERROR: FunctionPointer is NULL in start()!\n");
-            } else {
-                printf("FunctionPointer assigned: %p\n", FunctionPointer);
-                I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
-            }
+        //The frequency (in Hz) at which to update the integral.
+        Integrator(float update_freq)
+            : _update_freq(update_freq), _integral(0.0f) {
         }
-
-            // Overloaded start() for member function pointers
-        template <typename T>
-        void start(T* obj, float (T::*FcnPtr)(void)) {
-            if (!obj || !FcnPtr) {
-            printf("ERROR: FunctionPointer is NULL in start()!\n");
-            return;
-            }
-            ObjectPtr = obj;
-            MemberFunctionPointer = reinterpret_cast<float (Integrator::*)(void)>(FcnPtr);
-            FunctionPointer = nullptr;  // Disable normal function pointer
-
-            I_cycle.attach(callback(this, &Integrator::UpdateISR), 1.0f / frequency);
+    
+        /*
+         * Starts the integrator.
+         *
+         * This can be a pointer to a free function or to a member function.
+         * For example:
+         *     start(callback(&someObject, &SomeClass::methodReturningFloat))
+         * or
+         *     start(callback(freeFunctionReturningFloat))
+         */
+        void start(Callback<float()> input_func) {
+            _input_func = input_func;
+            // Attach our periodic update method at the specified frequency
+            _ticker.attach(callback(this, &Integrator::updateISR), 1.0f / _update_freq);
+        }
+    
+        //Stops the integrator (detaches the Ticker).
+        void stop() {
+            _ticker.detach();
+        }
+    
+        //@brief Returns the current integral value.
+        float getIntegral() const {
+            return _integral;
         }
 
         void reset(void){
-            summation = 0;
+            _integral = 0;
         }
-
-
-
-        void stop(void){
-            I_cycle.detach();
+    
+    private:
+        //Periodic update function called by the Ticker.
+        void updateISR() {
+            if (_input_func) {
+                // Get the input and integrate using dt = 1/freq
+                float value = _input_func();
+                _integral += value * (1.0f / _update_freq);
+            }
         }
-        
-
-        float getvalue(void){
-            return summation;
-        }
-
-    protected:
-
-        void UpdateISR(void){
-            summation = summation + (1.0f/frequency)*FunctionPointer();
-        }
-};
+    
+    private:
+        Ticker           _ticker;      // Ticker for periodic callbacks
+        Callback<float()> _input_func; // Function that provides the value to integrate
+        float            _update_freq; // Integration frequency (Hz)
+        volatile float            _integral;    // Accumulated integral
+    };
