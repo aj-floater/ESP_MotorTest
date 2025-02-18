@@ -78,28 +78,34 @@ public:
         }
 
         lcd.locate(0, 0);
-        floatToString(right_wheel.proportional_gain, buffer);
-        lcd.printf("Kp: %s\n", buffer);
-
+        floatToString(left_wheel.speed(), buffer);
+        lcd.printf("ls: %s\n", buffer);
+        // floatToString(right_wheel.proportional_gain, buffer);
+        // lcd.printf("Kp: %s\n", buffer);
+        
         lcd.locate(80, 0);
-        floatToString(right_wheel.derivative_gain, buffer);
-        lcd.printf("Kd: %s\n", buffer);
+        floatToString(right_wheel.speed(), buffer);
+        lcd.printf("rs: %s\n", buffer);
+        // floatToString(right_wheel.integral_gain, buffer);
+        // lcd.printf("Ki: %s\n", buffer);
+        // floatToString(right_wheel.derivative_gain, buffer);
+        // lcd.printf("Kd: %s\n", buffer);
 
         lcd.locate(0, 10);
-        floatToString(right_wheel.speed(), buffer);
-        lcd.printf("s: %s\n", buffer);
+        floatToString(left_wheel.measured_speed_angular(), buffer);
+        lcd.printf("ls: %s\n", buffer);
 
         lcd.locate(80, 10);
         floatToString(right_wheel.measured_speed_angular(), buffer);
-        lcd.printf("ms: %s\n", buffer);
+        lcd.printf("rms: %s\n", buffer);
 
-        lcd.locate(0, 20);
-        floatToString(right_wheel.error(), buffer);
-        lcd.printf("e: %s\n", buffer);
+        // lcd.locate(0, 20);
+        // floatToString(right_wheel.error(), buffer);
+        // lcd.printf("e: %s\n", buffer);
 
-        lcd.locate(80, 20);
-        floatToString(right_wheel.control_output, buffer);
-        lcd.printf("o: %s\n", buffer);
+        // lcd.locate(80, 20);
+        // floatToString(right_wheel.control_output, buffer);
+        // lcd.printf("o: %s\n", buffer);
     }
 };
 

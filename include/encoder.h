@@ -9,7 +9,7 @@ class Encoder {
 
   InterruptIn ChanelA, ChanelB;
   Ticker Encoder_dt; 
-  float dt = 0.1;
+  float dt = 0.05;
   volatile float EncoderTick;
   volatile int countA = 0, countB = 0;
   

@@ -6,14 +6,6 @@
 #include "wheel.h"
 #include "display.h"
 
-void modify(float Kp, float Kd){
-    right_wheel.proportional_gain = Kp;
-    left_wheel.proportional_gain = Kp;
-    
-    right_wheel.derivative_gain = Kd;
-    left_wheel.derivative_gain = Kd;
-}
-
 int main(void){
     // Pin Setup
     // ----------------------------
@@ -31,19 +23,31 @@ int main(void){
     Enable.write(1);
     // ----------------------------
 
-    right_wheel.speed(30.0f);
-    left_wheel.speed(30.0f);
+    // right_wheel.speed(30.0f);
+    // left_wheel.speed(30.0f);
+
+    LeftPot.setRange(-50.0f, 50.0f); // 0.005
+    RightPot.setRange(-50.0f, 50.0f); // 0.0014
+
+    modify(5.0f, 5.0f);
 
     while(1){
         right_wheel.update();
         left_wheel.update();
+        
+        LeftPot.update();
+        RightPot.update();
+        // modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
 
         display.refresh();
 
         char buffer[50];
         floatToString(right_wheel.desired_speed, buffer);
         printf(">ds:%s,", buffer);
+
         floatToString(right_wheel.measured_speed_angular(), buffer);
-        printf("rs:%s\n", buffer);
+        printf("rs:%s,", buffer);
+        floatToString(right_wheel.control_output, buffer);
+        printf("co:%s\n", buffer);
     }
 }
