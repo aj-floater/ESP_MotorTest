@@ -42,6 +42,8 @@ public:
         motor.period_us(45);
         motor.write(1.0f);
 
+        feed_forward_gain = 0.028f;// - 0.0001f * (desired_speed - 30.0f);
+
         desired_speed = 0.0f;
         measured_speed = 0.0f;
 
@@ -77,7 +79,6 @@ public:
         else desired_speed = s;
 
         integral_error = 0.0f;
-        feed_forward_gain = 0.018f;// - 0.0001f * (desired_speed - 30.0f);
         return 0;
     }
     float speed(){
@@ -125,7 +126,7 @@ public:
 };
 
 
-Wheel right_wheel(0.0059f, 0.0014f, 0.0007f, PA_12, PA_11, PC_6, PB_14);
-Wheel left_wheel(0.0059f, 0.0014f, 0.0007f, PC_7, PA_9, PC_8, PB_1);
+Wheel right_wheel(0.0059f, 0.0028f, 0.0007f, PA_12, PA_11, PC_6, PB_14);
+Wheel left_wheel(0.0059f, 0.0028f, 0.0007f, PC_7, PA_9, PC_8, PB_1);
 
 #endif // End of include guard

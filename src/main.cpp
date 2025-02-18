@@ -29,7 +29,7 @@ int main(void){
     LeftPot.setRange(-50.0f, 50.0f); // 0.005
     RightPot.setRange(-50.0f, 50.0f); // 0.0014
 
-    modify(5.0f, 5.0f);
+    modify(10.0f, 10.0f);
 
     while(1){
         right_wheel.update();
