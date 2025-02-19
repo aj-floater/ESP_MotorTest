@@ -81,9 +81,13 @@ void modify(float left, float right){
 
     // ----------------------------
 
-    right_wheel.speed(right);
-    left_wheel.speed(left);
+    // right_wheel.speed(right);
+    // left_wheel.speed(left);
+
+    Kp = left;
+    minScaleFactor = right;
 }
+
 
 SamplingPotentiometer LeftPot(A0, 3.3, 10);
 SamplingPotentiometer RightPot(A1, 3.3, 10);

@@ -134,7 +134,7 @@ private:
 };
 
 float RobotAngularV(Encoder& Encoder1, Encoder& Encoder2) {
-    float encoder_difference = abs(Encoder1.speed_linear()) - abs(Encoder2.speed_linear());
+    float encoder_difference = Encoder1.speed_linear() - Encoder2.speed_linear();
     float RobotAngularSpeed = encoder_difference / 0.173f;
     
     return RobotAngularSpeed;

@@ -16,7 +16,7 @@ void update(){
     
     LeftPot.update();
     RightPot.update();
-    // modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
+    modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
 
     display.refresh();
 
@@ -82,35 +82,48 @@ float getAngularVelocity(float right_speed, float left_speed){
 
 void Turn(float speed, float angle){
     a = angle;
-    i = 0;
-
+    
     left_wheel.speed(0.0f);
     right_wheel.speed(0.0f);
-
-    left_wheel.feed_forward_gain = 0.030f;
-
+    i_angular.reset();
+    
     update();
     
-    while (i <= angle){
-        left_wheel.speed(-speed);
-        right_wheel.speed(speed);
+    while (fabsf(i_angular.getIntegral() - angle) > 0.1f) {
 
-        i += getAngularVelocity(right_wheel.measured_speed_linear(), left_wheel.measured_speed_linear());
+        // 1. Compute error
+        float angleError = angle - i_angular.getIntegral();
+        float diff       = fabsf(angleError);
+    
+        // 2. Proportional control: compute a rampdown speed
+        // float Kp = 11.0f;             // Proportional gain - tune as needed
+        float targetSpeed = Kp * diff;
+        if (targetSpeed > speed)
+            targetSpeed = speed;
+    
+        // Ensure we don't drop below a minimum speed factor
+        // float minScaleFactor = 0.7f; // At least 80% of speed, tune as needed
+        if (targetSpeed < speed * minScaleFactor)
+            targetSpeed = speed * minScaleFactor;
+    
+        // 3. Set the speeds based on the sign of the error
+        if (angleError > 0.0f) {
+            left_wheel.speed(- 0.9f * targetSpeed);
+            right_wheel.speed( targetSpeed);
+        } else {
+            left_wheel.speed( 0.9f * targetSpeed);
+            right_wheel.speed(-targetSpeed);
+        }
+    
         update();
     }
     
+    
     left_wheel.speed(0.0f);
     right_wheel.speed(0.0f);
-
-    // while (true) {
-    //     display.refresh();
-    // }
-
-    left_wheel.feed_forward_gain = 0.026f;
+    i_angular.reset();
 
     update();
-
-    i = 0;
 }
 
 int main(void){
@@ -133,8 +146,8 @@ int main(void){
     right_wheel.speed(0.0f);
     left_wheel.speed(0.0f);
 
-    LeftPot.setRange(-50.0f, 50.0f); // 0.005
-    RightPot.setRange(-50.0f, 50.0f); // 0.0014
+    LeftPot.setRange(7.0f, 20.0f); // 0.005
+    RightPot.setRange(0.4f, 0.9f); // 0.0014
 
     // modify(10.0f, 10.0f);
 
@@ -142,7 +155,7 @@ int main(void){
     i_right.start(callback(&right_wheel,&Wheel::measured_speed_linear));
 
     auto RobotAngularV_Callback = [&]() -> float {
-        return RobotAngularV(left_wheel.encoder, right_wheel.encoder);
+        return RobotAngularV(right_wheel.encoder, left_wheel.encoder);
     };
     i_angular.start(RobotAngularV_Callback);
 
@@ -152,7 +165,7 @@ int main(void){
         wait_us(500000);
         MoveForward(12.0f, 0.5f);
         wait_us(500000);
-        Turn(12.0f, 3.1415f);
+        Turn(12.0f, 3.1415f/2.0f);
 
         // update();
     }

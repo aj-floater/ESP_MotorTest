@@ -4,9 +4,9 @@
 #include "mbed.h"
 #include "encoder.h"
 
-// Header file content goes here
-float Kp = 0.0192f;
-float Kd = 0.0001f;
+// // Header file content goes here
+// float Kp = 0.0192f;
+// float Kd = 0.0001f;
 
 class Wheel {
 private:
@@ -122,6 +122,6 @@ public:
 };
 
 Wheel right_wheel(0.0059f, 0.0028f, 0.0007f, 0.028f, PA_12, PA_11, PC_6, PB_14, 1);
-Wheel left_wheel(0.0059f, 0.0028f, 0.0007f, 0.026f, PC_7, PA_9, PC_8, PB_1, 0);
+Wheel left_wheel(0.0059f, 0.0028f, 0.0007f, 0.0265f, PC_7, PA_9, PC_8, PB_1, 0);
 
 #endif // End of include guard

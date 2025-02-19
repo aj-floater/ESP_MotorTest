@@ -6,6 +6,8 @@
 
 #include "wheel.h"
 
+float Kp = 9.0f;             // Proportional gain - tune as needed
+float minScaleFactor = 0.8f; // At least 80% of speed, tune as needed
 float i = 0;
 float a = 0;
 
@@ -103,12 +105,12 @@ public:
         lcd.printf("rms: %s\n", buffer);
 
         lcd.locate(0, 20);
-        floatToString(i, buffer);
-        lcd.printf("i: %s\n", buffer);
+        floatToString(Kp, buffer);
+        lcd.printf("kp: %s\n", buffer);
 
         lcd.locate(80, 20);
-        floatToString(a, buffer);
-        lcd.printf("a: %s\n", buffer);
+        floatToString(minScaleFactor, buffer);
+        lcd.printf("mSf: %s\n", buffer);
     }
 };
 
