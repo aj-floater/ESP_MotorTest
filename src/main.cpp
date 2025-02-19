@@ -63,56 +63,45 @@ int main(void){
 
     while(1){
 
-        // Motor1.write(1.0f);
-        // Motor2.write(1.0f);
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
 
 
-        // wait_us(5000000);
+        wait_us(5000000);
 
 
-
-        // do
-        // {
-        //     Motor1.write(0.7f);
-        //     Motor2.write(0.7f);
-
-        // } while ((I1.getIntegral() <= 0.5)&&(I2.getIntegral() <= 0.5));
-
-        // I1.stop();
-        // I2.stop();
-
-        // Motor1.write(1.0f);
-        // Motor2.write(1.0f);
-
-        // wait_us(1000000);
-
-
-        // I3.reset();
-        // Direction2.write(0);
-        // do{
-        // Motor1.write(0.7f);
-        // Motor2.write(0.7f);
-        // }while(I3.getIntegral() <= 3.141519f/2.0f);
-
-        // Direction2.write(1);
-        // Motor1.write(1.0f);
-        // Motor2.write(1.0f);
-
-        // do
-        // {
-        //     Motor1.write(0.7f);
-        //     Motor2.write(0.7f);
-
-        // } while ((I1.getIntegral() <= 0.5)&&(I2.getIntegral() <= 0.5));
-
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
         
-        // while(1){}       
+        Turn(3.1415, Motor1, Motor2, I3, Direction1, Direction2);
+
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+
+
+
+
+        I3.reset();
+        
+        while(1){    
         
         floatToString(RobotAngularV(Encoder1, Encoder2), buffer1);
         floatToString(I3.getIntegral(), buffer2);
         printf("AngularV: %s,  Angle: %s,  R_direction: %d,  L_direction: %d\n", buffer1, buffer2, Encoder1.direction, Encoder2.direction);
 
         wait_us(100000);
+
      
     }
+}
 }

@@ -51,7 +51,7 @@ class Encoder {
         switch(status)
         {
         case true:
-            if(ChanelB.read()==1){direction = false;}else{direction = true;}
+            if(ChanelB.read()==1){direction = true;}else{direction = false;}
             break;
         case false: 
             if(ChanelB.read()==1){direction = true;}else{direction = false;}
@@ -66,74 +66,74 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 };
 
-class Wheel {
-    private:
-    public:
-        float desired_speed;
-        float measured_speed;
+// class Wheel {
+//     private:
+//     public:
+//         float desired_speed;
+//         float measured_speed;
     
-        float proportional_gain;
-        float previous_error;
+//         float proportional_gain;
+//         float previous_error;
     
-        float control_output;
+//         float control_output;
     
-        Encoder encoder;
-        PwmOut motor;
+//         Encoder encoder;
+//         PwmOut motor;
     
-        Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
-            proportional_gain(Kp), 
-            encoder(ChA, ChB),
-            motor(pwm)
-        {
-            encoder.initialise();
+//         Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
+//             proportional_gain(Kp), 
+//             encoder(ChA, ChB),
+//             motor(pwm)
+//         {
+//             encoder.initialise();
     
-            motor.period_us(45);
-            motor.write(1.0f);
+//             motor.period_us(45);
+//             motor.write(1.0f);
     
-            desired_speed = 0.0f;
-            measured_speed = 0.0f;
-            control_output = 1.0f;
-        }
+//             desired_speed = 0.0f;
+//             measured_speed = 0.0f;
+//             control_output = 1.0f;
+//         }
     
-        float measured_speed_angular() { return encoder.speed_angular(); };
-        float measured_speed_linear() { return encoder.speed_linear(); };
+//         float measured_speed_angular() { return encoder.speed_angular(); };
+//         float measured_speed_linear() { return encoder.speed_linear(); };
     
-        // Set speed in rad/s
-        float speed(float s){
-            desired_speed = s;
-            return 0;
-        }
-        float speed(){
-            return desired_speed;
-        }
+//         // Set speed in rad/s
+//         float speed(float s){
+//             desired_speed = s;
+//             return 0;
+//         }
+//         float speed(){
+//             return desired_speed;
+//         }
     
-        // Calculate the error e(t) = Desired Speed − Measured Speed
-        float error(){
-            return measured_speed_angular() - desired_speed;
-        }
+//         // Calculate the error e(t) = Desired Speed − Measured Speed
+//         float error(){
+//             return measured_speed_angular() - desired_speed;
+//         }
     
-        // Calculate the control output (ie the PWM duty cycle)
-        void pControl(){
-            float Et = error(); // gets the error at the current time
+//         // Calculate the control output (ie the PWM duty cycle)
+//         void pControl(){
+//             float Et = error(); // gets the error at the current time
     
-            float proportional_term = proportional_gain * Et;
-            control_output += proportional_term;
+//             float proportional_term = proportional_gain * Et;
+//             control_output += proportional_term;
     
-            // Setup values for next iteration
-            previous_error = Et;
-        }
+//             // Setup values for next iteration
+//             previous_error = Et;
+//         }
     
-        void update(){
-            // Clamp final output to 0.0f and 1.0f
-            // pControl();
-            control_output = 1 - desired_speed/50;
+//         void update(){
+//             // Clamp final output to 0.0f and 1.0f
+//             // pControl();
+//             control_output = 1 - desired_speed/50;
     
-            if (control_output < 0.0f) control_output = 0.0f;
-            else if (control_output > 1.0f) control_output = 1.0f;
+//             if (control_output < 0.0f) control_output = 0.0f;
+//             else if (control_output > 1.0f) control_output = 1.0f;
     
-            motor.write(control_output);
-        }
-    };
+//             motor.write(control_output);
+//         }
+//     };
 
     // This class creates Integrator objects. 
     // Why? the code will be long and throughout it we will certainly need to perform simultaneous integrations

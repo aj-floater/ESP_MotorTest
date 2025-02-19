@@ -61,10 +61,14 @@ void MoveForward(float distance, PwmOut &Motor1, PwmOut &Motor2, Integrator &I1,
     Motor1.write(0.7f);
     Motor2.write(0.7f);
 
+    float d1, d2;
+
     do
     {
+        d1 = I1.getIntegral();
+        d2 = I2.getIntegral();
 
-    } while ((I1.getIntegral() <= distance)|| (I2.getIntegral() <= distance));
+    } while ((d1 <= distance));
 
     Motor1.write(1.0f);
     Motor2.write(1.0f);  
@@ -76,21 +80,32 @@ void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOu
 
     if (angle < 0.0f)
     {
-        Direction2.write(0);
+        Direction1.write(0);
+
+        Motor1.write(0.7f);
+        Motor2.write(0.7f); 
+
+        float a;
 
         do
         {
+            a = I3.getIntegral();
             
         } while (I3.getIntegral() >= angle);
    
-    }else
-    {
-            Direction1.write(0);
+    }else{
+            Direction2.write(0);
+
+            Motor1.write(0.7f);
+            Motor2.write(0.7f); 
+
+            float a;
     
             do
             {
+                a = I3.getIntegral();
                 
-            } while (I3.getIntegral() <= angle);
+            } while (a <= angle);
     }
 
     Direction1.write(1);
