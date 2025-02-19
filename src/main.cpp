@@ -4,6 +4,7 @@
 #include "functions.h"
 
 
+<<<<<<< Updated upstream
     // Encoders setup
     Encoder Encoder1(PA_11,PA_12, 0);
     Encoder Encoder2(PC_7,PA_9, 1);
@@ -81,7 +82,14 @@ void Turn(float angle){
     I3.reset();
 }
 
+=======
+
+
+
+>>>>>>> Stashed changes
 int main(void){
+
+    printf("main start");
 
 
     // Pointers to functions
@@ -120,6 +128,7 @@ int main(void){
 
         float speed, distance;
 
+<<<<<<< Updated upstream
     while(1){
 
         Motor1.write(1.0f);
@@ -151,6 +160,40 @@ int main(void){
         while(1){}
 
         
+=======
+        
+     
+
+    while(1){
+
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        
+        Turn(3.1415, Motor1, Motor2, I3, Direction1, Direction2); 
+
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2); 
+        MoveForward(0.5, Motor1, Motor2, I1, I2);
+
+        while(1){}
+
+
+
+      
+        
+        floatToString(RobotAngularV(Encoder1, Encoder2), buffer1);
+        floatToString(I3.getIntegral(), buffer2);
+        printf("AngularV: %s,  Angle: %s,  R_direction: %d,  L_direction: %d\n", buffer1, buffer2, Encoder1.direction, Encoder2.direction);
+>>>>>>> Stashed changes
 
         
 

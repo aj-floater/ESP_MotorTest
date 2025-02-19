@@ -51,3 +51,60 @@ void floatToString(float value, char *buffer) {
 float RobotAngularV(Encoder& Encoder1, Encoder& Encoder2) {
     float RobotAngularSpeed = ((Encoder1.speed_linear() - Encoder2.speed_linear()) / 0.173f);
     return RobotAngularSpeed;}
+
+
+    void MoveForward(float distance, PwmOut &Motor1, PwmOut &Motor2, Integrator &I1, Integrator &I2){
+
+
+        I1.reset();
+        I2.reset();
+
+        Motor1.write(0.7f);
+        Motor2.write(0.7f);
+
+        do
+        {
+            
+        } while ((I1.getIntegral() <= distance)||(I1.getIntegral() <= distance));
+
+
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
+
+    }
+
+    void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOut &Direction1, DigitalOut &Direction2){
+
+        if (angle < 0.0f)
+        {
+            Direction2.write(0);
+
+            Motor1.write(0.7f);
+            Motor2.write(0.7f);
+
+            do
+            {
+                
+            } while (I3.getIntegral() >= angle);
+            
+        }else
+        {
+            Direction1.write(0);
+
+            Motor1.write(0.7f);
+            Motor2.write(0.7f);
+
+            do
+            {
+                
+            } while (I3.getIntegral() <= angle);
+            
+        }
+
+        Direction1.write(1);
+        Direction2.write(1);
+
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
+
+    }
