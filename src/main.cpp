@@ -26,10 +26,8 @@ int main(void){
     // right_wheel.speed(30.0f);
     // left_wheel.speed(30.0f);
 
-    LeftPot.setRange(-50.0f, 50.0f); // 0.005
-    RightPot.setRange(-50.0f, 50.0f); // 0.0014
-
-    modify(5.0f, 5.0f);
+    LeftPot.setRange(0.0f, 1.0f); // 0.005
+    RightPot.setRange(0.0f, 1.0f); // 0.0014
 
     while(1){
         right_wheel.update();
