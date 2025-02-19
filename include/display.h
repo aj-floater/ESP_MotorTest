@@ -6,6 +6,9 @@
 
 #include "wheel.h"
 
+float i = 0;
+float a = 0;
+
 void floatToString(float value, char *buffer);
 
 // Helper function to convert float to string
@@ -78,13 +81,13 @@ public:
         }
 
         lcd.locate(0, 0);
-        floatToString(left_wheel.speed(), buffer);
+        floatToString(left_wheel.desired_speed, buffer);
         lcd.printf("ls: %s\n", buffer);
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
         
         lcd.locate(80, 0);
-        floatToString(right_wheel.speed(), buffer);
+        floatToString(right_wheel.desired_speed, buffer);
         lcd.printf("rs: %s\n", buffer);
         // floatToString(right_wheel.integral_gain, buffer);
         // lcd.printf("Ki: %s\n", buffer);
@@ -99,13 +102,13 @@ public:
         floatToString(right_wheel.measured_speed_angular(), buffer);
         lcd.printf("rms: %s\n", buffer);
 
-        // lcd.locate(0, 20);
-        // floatToString(right_wheel.error(), buffer);
-        // lcd.printf("e: %s\n", buffer);
+        lcd.locate(0, 20);
+        floatToString(i, buffer);
+        lcd.printf("i: %s\n", buffer);
 
-        // lcd.locate(80, 20);
-        // floatToString(right_wheel.control_output, buffer);
-        // lcd.printf("o: %s\n", buffer);
+        lcd.locate(80, 20);
+        floatToString(a, buffer);
+        lcd.printf("a: %s\n", buffer);
     }
 };
 

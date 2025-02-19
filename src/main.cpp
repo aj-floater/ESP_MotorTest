@@ -6,6 +6,113 @@
 #include "wheel.h"
 #include "display.h"
 
+Integrator i_left(100.0f);
+Integrator i_right(100.0f);
+Integrator i_angular(100.0f);
+
+void update(){
+    right_wheel.update();
+    left_wheel.update();
+    
+    LeftPot.update();
+    RightPot.update();
+    // modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
+
+    display.refresh();
+
+    char buffer[50];
+    // floatToString(right_wheel.desired_speed, buffer);
+    // printf(">rds:%s,", buffer);
+    floatToString(right_wheel.measured_speed_linear(), buffer);
+    printf(">rs:%s,", buffer);
+    // floatToString(right_wheel.control_output, buffer);
+    // printf("rco:%s\n", buffer);
+
+    // floatToString(left_wheel.desired_speed, buffer);
+    // printf(">lds:%s,", buffer);
+    floatToString(left_wheel.measured_speed_linear(), buffer);
+    printf("ls:%s\n", buffer);
+    // floatToString(left_wheel.control_output, buffer);
+    // printf("lco:%s\n", buffer);
+
+    // char buffer[50];
+    floatToString(i, buffer);
+    printf(">i:%s,", buffer);
+    floatToString(a, buffer);
+    printf("a:%s\n", buffer);
+}
+
+void MoveForward(float speed, float distance){
+
+    left_wheel.speed(0.0f);
+    right_wheel.speed(0.0f);
+
+    update();
+    
+    i_left.reset();
+    i_right.reset();
+    
+    do
+    {
+        float integralCompensation1 = 0;//(i_right.getIntegral() - i_left.getIntegral()) * - 20.5f;
+        float integralCompensation2 = 0;//(i_left.getIntegral() - i_right.getIntegral()) * 100.0f;
+        
+        left_wheel.speed(speed + integralCompensation1);
+        right_wheel.speed(speed + integralCompensation2);
+
+        update();
+
+    } while ((i_left.getIntegral() <= distance) && (i_right.getIntegral() <= distance));
+    
+    left_wheel.speed(0.0f);
+    right_wheel.speed(0.0f);
+
+    update();
+
+    i_left.reset();
+    i_right.reset();
+}
+
+float getAngularVelocity(float right_speed, float left_speed){
+    float speed_difference = right_speed - left_speed;
+    float angular_speed = speed_difference / 0.173f;
+
+    return angular_speed;
+}
+
+void Turn(float speed, float angle){
+    a = angle;
+    i = 0;
+
+    left_wheel.speed(0.0f);
+    right_wheel.speed(0.0f);
+
+    left_wheel.feed_forward_gain = 0.030f;
+
+    update();
+    
+    while (i <= angle){
+        left_wheel.speed(-speed);
+        right_wheel.speed(speed);
+
+        i += getAngularVelocity(right_wheel.measured_speed_linear(), left_wheel.measured_speed_linear());
+        update();
+    }
+    
+    left_wheel.speed(0.0f);
+    right_wheel.speed(0.0f);
+
+    // while (true) {
+    //     display.refresh();
+    // }
+
+    left_wheel.feed_forward_gain = 0.026f;
+
+    update();
+
+    i = 0;
+}
+
 int main(void){
     // Pin Setup
     // ----------------------------
@@ -23,31 +130,30 @@ int main(void){
     Enable.write(1);
     // ----------------------------
 
-    // right_wheel.speed(30.0f);
-    // left_wheel.speed(30.0f);
+    right_wheel.speed(0.0f);
+    left_wheel.speed(0.0f);
 
     LeftPot.setRange(-50.0f, 50.0f); // 0.005
     RightPot.setRange(-50.0f, 50.0f); // 0.0014
 
-    modify(10.0f, 10.0f);
+    // modify(10.0f, 10.0f);
+
+    i_left.start(callback(&left_wheel,&Wheel::measured_speed_linear));
+    i_right.start(callback(&right_wheel,&Wheel::measured_speed_linear));
+
+    auto RobotAngularV_Callback = [&]() -> float {
+        return RobotAngularV(left_wheel.encoder, right_wheel.encoder);
+    };
+    i_angular.start(RobotAngularV_Callback);
+
+    update();
 
     while(1){
-        right_wheel.update();
-        left_wheel.update();
-        
-        LeftPot.update();
-        RightPot.update();
-        // modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
+        wait_us(500000);
+        MoveForward(12.0f, 0.5f);
+        wait_us(500000);
+        Turn(12.0f, 3.1415f);
 
-        display.refresh();
-
-        char buffer[50];
-        floatToString(right_wheel.desired_speed, buffer);
-        printf(">ds:%s,", buffer);
-
-        floatToString(right_wheel.measured_speed_angular(), buffer);
-        printf("rs:%s,", buffer);
-        floatToString(right_wheel.control_output, buffer);
-        printf("co:%s\n", buffer);
+        // update();
     }
 }

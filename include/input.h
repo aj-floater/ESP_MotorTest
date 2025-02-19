@@ -32,7 +32,7 @@ private:
     // ISR handlers for falling edges (button released)
     void upReleased() {
         if (upActive) {
-            right_wheel.speed(right_wheel.speed() + 1);  // Increase speed
+            right_wheel.speed(right_wheel.desired_speed + 1);  // Increase speed
             display.markRefreshNeeded();
 
             upActive = false;
@@ -41,7 +41,7 @@ private:
 
     void downReleased() {
         if (downActive) {
-            right_wheel.speed(right_wheel.speed() - 1);  // Increase speed
+            right_wheel.speed(right_wheel.desired_speed - 1);  // Increase speed
             display.markRefreshNeeded();
 
             downActive = false;
