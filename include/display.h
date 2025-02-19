@@ -93,7 +93,7 @@ public:
 
         lcd.locate(0, 10);
         floatToString(left_wheel.measured_speed_angular(), buffer);
-        lcd.printf("ls: %s\n", buffer);
+        lcd.printf("lms: %s\n", buffer);
 
         lcd.locate(80, 10);
         floatToString(right_wheel.measured_speed_angular(), buffer);
