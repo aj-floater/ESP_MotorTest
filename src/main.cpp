@@ -34,8 +34,8 @@ int main(void){
     
 
     // Encoders setup
-    Encoder Encoder1(PA_11,PA_12);
-    Encoder Encoder2(PC_7,PA_9);
+    Encoder Encoder1(PA_11,PA_12,0);
+    Encoder Encoder2(PC_7,PA_9,1);
 
     Encoder1.initialise();
     Encoder2.initialise();

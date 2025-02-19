@@ -10,9 +10,10 @@ class Encoder {
     volatile float EncoderTick;
     volatile int countA = 0, countB = 0;
     volatile bool direction = true;  // true = clockwise, false = counterclockwise
+    bool status;
     
 
-    Encoder(PinName ChA, PinName ChB) : ChanelA(ChA), ChanelB(ChB){}
+    Encoder(PinName ChA, PinName ChB, bool Inverted) : ChanelA(ChA), ChanelB(ChB), status(Inverted){}
 
     void initialise(void){
         
@@ -28,10 +29,13 @@ class Encoder {
         float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
         float wheelVelocity = 0.078f * 0.5f * radPERseconds;
 
+        if(!direction){wheelVelocity = -1.0f * wheelVelocity;}
         return wheelVelocity;
     }
     float speed_angular(void){
         float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
+
+        if(!direction){radPERseconds = -1.0f * radPERseconds;}
         return radPERseconds;
     }
 
@@ -44,10 +48,20 @@ class Encoder {
 
     void ChanelA_countISR(void){
         countA++; 
-        if (ChanelB.read()==1)
+        switch(status)
         {
-            direction = true;
-        }else{direction = false;}}
+        case true:
+            if(ChanelB.read()==1){direction = false;}else{direction = true;}
+            break;
+        case false: 
+            if(ChanelB.read()==1){direction = true;}else{direction = false;}
+            break;
+        
+        default:
+            break;
+        }
+        
+    }
         
     void ChanelB_countISR(void){countB++;}
 };
