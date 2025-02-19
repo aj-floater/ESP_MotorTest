@@ -114,7 +114,7 @@ public:
     void update(){
         // Update control
         pidControl();
-        // control_output = 1 - desired_speed/55;
+        // control_output = 1 - desired_speed * feed_forward_gain;
         
         // Clamp final output to 0.0f and 1.0f
         if (control_output < 0.0f) control_output = 0.0f;

@@ -37,7 +37,7 @@ int main(void){
         
         LeftPot.update();
         RightPot.update();
-        // modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
+        modify(LeftPot.getCurrentSampleNorm(), RightPot.getCurrentSampleNorm());
 
         display.refresh();
 
