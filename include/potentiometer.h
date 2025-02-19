@@ -85,7 +85,9 @@ void modify(float left, float right){
     // left_wheel.speed(left);
 
     Kp = left;
-    minScaleFactor = right;
+    // Kp_straight = right;
+    // minScaleFactor = right;
+    deadband = right;
 }
 
 

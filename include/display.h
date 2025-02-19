@@ -6,7 +6,9 @@
 
 #include "wheel.h"
 
+float deadband = 0.05f;
 float Kp = 9.0f;             // Proportional gain - tune as needed
+float Kp_straight = 2.35f;  // Tune this parameter
 float minScaleFactor = 0.8f; // At least 80% of speed, tune as needed
 float i = 0;
 float a = 0;
@@ -97,20 +99,20 @@ public:
         // lcd.printf("Kd: %s\n", buffer);
 
         lcd.locate(0, 10);
-        floatToString(left_wheel.measured_speed_angular(), buffer);
-        lcd.printf("ls: %s\n", buffer);
+        floatToString(deadband, buffer);
+        lcd.printf("db: %s\n", buffer);
 
         lcd.locate(80, 10);
-        floatToString(right_wheel.measured_speed_angular(), buffer);
-        lcd.printf("rms: %s\n", buffer);
+        floatToString(minScaleFactor, buffer);
+        lcd.printf("mSF: %s\n", buffer);
 
         lcd.locate(0, 20);
         floatToString(Kp, buffer);
         lcd.printf("kp: %s\n", buffer);
 
         lcd.locate(80, 20);
-        floatToString(minScaleFactor, buffer);
-        lcd.printf("mSf: %s\n", buffer);
+        floatToString(Kp_straight, buffer);
+        lcd.printf("kps: %s\n", buffer);
     }
 };
 

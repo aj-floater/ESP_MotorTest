@@ -42,7 +42,7 @@ void update(){
     printf("a:%s\n", buffer);
 }
 
-void MoveForward(float speed, float distance){
+void MoveForward(float speed, float distance) {
 
     left_wheel.speed(0.0f);
     right_wheel.speed(0.0f);
@@ -52,32 +52,38 @@ void MoveForward(float speed, float distance){
     i_left.reset();
     i_right.reset();
     
-    do
-    {
-        float integralCompensation1 = 0;//(i_right.getIntegral() - i_left.getIntegral()) * - 20.5f;
-        float integralCompensation2 = 0;//(i_left.getIntegral() - i_right.getIntegral()) * 100.0f;
-        
-        left_wheel.speed(speed + integralCompensation1);
-        right_wheel.speed(speed + integralCompensation2);
+    Kp_straight = 2.35f;  // Tune this parameter
+
+    do {
+        // 1. Calculate wheel travel difference
+        float error = i_left.getIntegral() - i_right.getIntegral();
+        float adjustment = Kp_straight * error;
+
+        // 2. Apply correction
+        float left_speed = speed - adjustment;
+        float right_speed = speed + adjustment;
+
+        // 3. Ensure speeds stay within valid range
+        if (left_speed > speed) left_speed = speed;
+        if (right_speed > speed) right_speed = speed;
+        if (left_speed < -speed) left_speed = -speed;
+        if (right_speed < -speed) right_speed = -speed;
+
+        // 4. Set adjusted speeds
+        left_wheel.speed(left_speed);
+        right_wheel.speed(right_speed);
 
         update();
 
     } while ((i_left.getIntegral() <= distance) && (i_right.getIntegral() <= distance));
-    
+
+    // Stop the wheels
     left_wheel.speed(0.0f);
     right_wheel.speed(0.0f);
-
     update();
 
     i_left.reset();
     i_right.reset();
-}
-
-float getAngularVelocity(float right_speed, float left_speed){
-    float speed_difference = right_speed - left_speed;
-    float angular_speed = speed_difference / 0.173f;
-
-    return angular_speed;
 }
 
 void Turn(float speed, float angle){
@@ -89,35 +95,47 @@ void Turn(float speed, float angle){
     
     update();
     
-    while (fabsf(i_angular.getIntegral() - angle) > 0.1f) {
+    // Define a deadband threshold (e.g., 0.05 radians)
+    // deadband = 0.05f;
 
-        // 1. Compute error
+    while (fabsf(i_angular.getIntegral() - angle) > 0.1f) {
+        // Compute error
         float angleError = angle - i_angular.getIntegral();
-        float diff       = fabsf(angleError);
-    
-        // 2. Proportional control: compute a rampdown speed
-        // float Kp = 11.0f;             // Proportional gain - tune as needed
+        float diff = fabsf(angleError);
+        
+        // If the error is extremely small, break out to avoid oscillations.
+        // if (fabsf(angleError) < deadband) {
+        //     break;
+        // }
+
+        // Proportional control: compute a rampdown speed
+        Kp = 11.0f;
         float targetSpeed = Kp * diff;
         if (targetSpeed > speed)
             targetSpeed = speed;
-    
+
+        // Define the 30° threshold in radians
+        // float degThreshold = 50.0f * (M_PI / 180.0f);  // ≈ 0.523599 radians
+        // if (diff < degThreshold && targetSpeed > speed * 0.8f) {
+        //     targetSpeed = speed * (0.5f+(diff/degThreshold)*0.3f);
+        // }
+
         // Ensure we don't drop below a minimum speed factor
-        // float minScaleFactor = 0.7f; // At least 80% of speed, tune as needed
+        minScaleFactor = 0.6f;
         if (targetSpeed < speed * minScaleFactor)
             targetSpeed = speed * minScaleFactor;
-    
-        // 3. Set the speeds based on the sign of the error
+
+        // Set wheel speeds based on error sign
         if (angleError > 0.0f) {
-            left_wheel.speed(- 0.9f * targetSpeed);
-            right_wheel.speed( targetSpeed);
+            left_wheel.speed(-targetSpeed);
+            right_wheel.speed(targetSpeed);
         } else {
-            left_wheel.speed( 0.9f * targetSpeed);
+            left_wheel.speed(targetSpeed);
             right_wheel.speed(-targetSpeed);
         }
-    
+        
         update();
     }
-    
     
     left_wheel.speed(0.0f);
     right_wheel.speed(0.0f);
@@ -146,10 +164,8 @@ int main(void){
     right_wheel.speed(0.0f);
     left_wheel.speed(0.0f);
 
-    LeftPot.setRange(7.0f, 20.0f); // 0.005
-    RightPot.setRange(0.4f, 0.9f); // 0.0014
-
-    // modify(10.0f, 10.0f);
+    LeftPot.setRange(0.0f, 15.0f); // 0.005
+    RightPot.setRange(0.0f, 0.2f); // 0.0014
 
     i_left.start(callback(&left_wheel,&Wheel::measured_speed_linear));
     i_right.start(callback(&right_wheel,&Wheel::measured_speed_linear));
@@ -161,12 +177,52 @@ int main(void){
 
     update();
 
-    while(1){
-        wait_us(500000);
-        MoveForward(12.0f, 0.5f);
-        wait_us(500000);
-        Turn(12.0f, 3.1415f/2.0f);
+    float speed = 12.0f;
+    float wait_time = 0.25f; // in seconds
+    wait_time = wait_time * 1'000'000;
 
-        // update();
+    while(1){
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, 3.1415f/2.0f);
+
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, 3.1415f/2.0f);
+
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, 3.1415f/2.0f);
+        
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+
+        wait_us(wait_time);
+        Turn(speed, -3.1415f);
+
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, -3.1415f/2.0f);
+
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, -3.1415f/2.0f);
+        
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, -3.1415f/2.0f);
+        
+        wait_us(wait_time);
+        MoveForward(speed, 0.5f);
+        wait_us(wait_time);
+        Turn(speed, 3.1415f);
+
+        while (true) { /* FINISHED */ }
     }
 }
