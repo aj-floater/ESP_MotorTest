@@ -41,12 +41,12 @@ int main(void){
     Encoder2.initialise();
 
     // Integrator setup
-        Integrator I1(100.0f);
+        Integrator I1(1000.0f);
         I1.start(callback(&Encoder1,&Encoder::speed_linear));
-        Integrator I2(10.0f);
+        Integrator I2(1000.0f);
         I2.start(callback(&Encoder2,&Encoder::speed_linear));
 
-        Integrator I3(10.0f);
+        Integrator I3(1000.0f);
         auto RobotAngularV_Callback = [&]() -> float {
             return RobotAngularV(Encoder1, Encoder2);
         };

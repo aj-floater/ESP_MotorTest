@@ -49,7 +49,7 @@ void floatToString(float value, char *buffer) {
 }
 
 float RobotAngularV(Encoder& Encoder1, Encoder& Encoder2) {
-    float RobotAngularSpeed = ((Encoder1.speed_linear() - Encoder2.speed_linear()) / 0.173f);
+    float RobotAngularSpeed = ((Encoder1.speed_linear() - Encoder2.speed_linear()) / 0.18f);
     return RobotAngularSpeed;}
 
 
