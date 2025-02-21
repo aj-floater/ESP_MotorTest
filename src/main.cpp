@@ -177,52 +177,53 @@ int main(void){
 
     update();
 
-    float speed = 12.0f;
-    float wait_time = 0.25f; // in seconds
+    float speed = 30.0f;
+    float turn_speed = 12.0f;
+    float wait_time = 0.00f; // in seconds
     wait_time = wait_time * 1'000'000;
-    float distance = 0.25f;
+    float distance = 1.0f;
 
     while(1){
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, 3.1415f/2.0f);
+        Turn(turn_speed, 3.1415f/2.0f);
 
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, 3.1415f/2.0f);
+        Turn(turn_speed, 3.1415f/2.0f);
 
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, 3.1415f/2.0f);
+        Turn(turn_speed, 3.1415f/2.0f);
         
         wait_us(wait_time);
         MoveForward(speed, distance);
 
         wait_us(wait_time);
-        Turn(speed, -3.1415f);
+        Turn(turn_speed, -3.1415f);
 
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, -3.1415f/2.0f);
+        Turn(turn_speed, -3.1415f/2.0f);
 
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, -3.1415f/2.0f);
+        Turn(turn_speed, -3.1415f/2.0f);
         
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, -3.1415f/2.0f);
+        Turn(turn_speed, -3.1415f/2.0f);
         
         wait_us(wait_time);
         MoveForward(speed, distance);
         wait_us(wait_time);
-        Turn(speed, 3.1415f);
+        Turn(turn_speed, 3.1415f);
 
         while (true) { /* FINISHED */ }
     }
