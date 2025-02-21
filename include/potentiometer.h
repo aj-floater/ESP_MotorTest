@@ -86,8 +86,8 @@ void modify(float left, float right){
 
     Kp = left;
     // Kp_straight = right;
-    // minScaleFactor = right;
-    deadband = right;
+    minScaleFactor = right;
+    // deadband = right;
 }
 
 

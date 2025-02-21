@@ -6,8 +6,8 @@
 #include "wheel.h"
 #include "display.h"
 
-Integrator i_left(100.0f);
-Integrator i_right(100.0f);
+Integrator i_left(1000.0f);
+Integrator i_right(1000.0f);
 Integrator i_angular(100.0f);
 
 void update(){
@@ -109,7 +109,7 @@ void Turn(float speed, float angle){
         // }
 
         // Proportional control: compute a rampdown speed
-        Kp = 11.0f;
+        // Kp = 11.0f;
         float targetSpeed = Kp * diff;
         if (targetSpeed > speed)
             targetSpeed = speed;
@@ -121,7 +121,7 @@ void Turn(float speed, float angle){
         // }
 
         // Ensure we don't drop below a minimum speed factor
-        minScaleFactor = 0.6f;
+        // minScaleFactor = 0.8f;
         if (targetSpeed < speed * minScaleFactor)
             targetSpeed = speed * minScaleFactor;
 
@@ -165,7 +165,7 @@ int main(void){
     left_wheel.speed(0.0f);
 
     LeftPot.setRange(0.0f, 15.0f); // 0.005
-    RightPot.setRange(0.0f, 0.2f); // 0.0014
+    RightPot.setRange(0.0f, 1.0f); // 0.0014
 
     i_left.start(callback(&left_wheel,&Wheel::measured_speed_linear));
     i_right.start(callback(&right_wheel,&Wheel::measured_speed_linear));
@@ -180,46 +180,47 @@ int main(void){
     float speed = 12.0f;
     float wait_time = 0.25f; // in seconds
     wait_time = wait_time * 1'000'000;
+    float distance = 0.25f;
 
     while(1){
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, 3.1415f/2.0f);
 
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, 3.1415f/2.0f);
 
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, 3.1415f/2.0f);
         
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
 
         wait_us(wait_time);
         Turn(speed, -3.1415f);
 
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, -3.1415f/2.0f);
 
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, -3.1415f/2.0f);
         
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, -3.1415f/2.0f);
         
         wait_us(wait_time);
-        MoveForward(speed, 0.5f);
+        MoveForward(speed, distance);
         wait_us(wait_time);
         Turn(speed, 3.1415f);
 
