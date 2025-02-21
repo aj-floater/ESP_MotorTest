@@ -81,8 +81,8 @@ void modify(float left, float right){
 
     // ----------------------------
 
-    right_wheel.control_output = left;
-    left_wheel.control_output = right;
+    right_wheel.control_output = right;
+    left_wheel.control_output = left;
 }
 
 SamplingPotentiometer LeftPot(A0, 3.3, 10);
