@@ -177,7 +177,7 @@ int main(void){
 
     update();
 
-    float speed = 30.0f;
+    float speed = 50.0f;
     float turn_speed = 12.0f;
     float wait_time = 0.00f; // in seconds
     wait_time = wait_time * 1'000'000;
