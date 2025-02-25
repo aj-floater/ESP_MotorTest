@@ -5,35 +5,49 @@
 #include <string>
 #include <cstring>
 
+#define MAXIMUM_BUFFER_SIZE 32
 class HM10 {
   private:
     // BufferedSerial object encapsulated within the HM10 class.
     BufferedSerial serial_port;
 public:
-    // Public buffers to store the most recent write and read strings.
-    std::string currentWriteBuffer;
-    std::string currentReadBuffer;
+    static const int BUFFER_SIZE = 32; // Adjust as needed
 
-    // Constructor: Initialize the serial port with 9600-8-N-1.
+    // Buffers to store the last written and read data
+    char currentWriteBuffer[BUFFER_SIZE];
+    char currentReadBuffer[BUFFER_SIZE];
+
+    // Constructor: initializes the serial port (9600-8-N-1)
     HM10(PinName tx, PinName rx) : serial_port(tx, rx) {
         serial_port.set_baud(9600);
         serial_port.set_format(8, BufferedSerial::None, 1);
+
+        // Initialize the buffers
+        memset(currentWriteBuffer, 0, sizeof(currentWriteBuffer));
+        memset(currentReadBuffer, 0, sizeof(currentReadBuffer));
     }
 
-    // Send function: writes the given string to the serial port and stores it.
-    void send(const char* message) {
-        currentWriteBuffer = message;
-        serial_port.write(message, strlen(message));
+    // Write function: writes the given string to the serial port and stores it in currentWriteBuffer
+    void write(const char* message) {
+        // Copy the message into currentWriteBuffer safely (leave space for null terminator)
+        strncpy(currentWriteBuffer, message, BUFFER_SIZE - 1);
+        currentWriteBuffer[BUFFER_SIZE - 1] = '\0';
+
+        // Write the contents of currentWriteBuffer to the serial port
+        serial_port.write(currentWriteBuffer, strlen(currentWriteBuffer));
     }
 
-    // Read function: reads available data from the serial port and stores it.
-    void read() {
-        char buf[128] = {0};  // Adjust size as needed.
-        uint32_t num = serial_port.read(buf, sizeof(buf) - 1);
+    // Read function: reads available data from the serial port and stores it in currentReadBuffer
+    float read() {
+        char tempBuffer[BUFFER_SIZE] = {0};
+        uint32_t num = serial_port.read(tempBuffer, sizeof(tempBuffer) - 1);
         if (num > 0) {
-            buf[num] = '\0';  // Ensure null-termination.
-            currentReadBuffer = std::string(buf);
+            tempBuffer[num] = '\0'; // Ensure null-termination
+            // Copy the received data into currentReadBuffer
+            strncpy(currentReadBuffer, tempBuffer, BUFFER_SIZE - 1);
+            currentReadBuffer[BUFFER_SIZE - 1] = '\0';
         }
+        return num;
     }
 
     // Update function: placeholder for periodic tasks.
@@ -51,5 +65,7 @@ public:
         // Future decoding logic can be implemented here.
     }
 };
+
+HM10 hm10(PA_11, PA_12);
 
 #endif // HM10_H

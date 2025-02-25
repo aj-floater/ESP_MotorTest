@@ -5,10 +5,7 @@
 #include "C12832.h"
 
 #include "wheel.h"
-
-#define MAXIMUM_BUFFER_SIZE                                                  32
-// Application buffer to receive the data
-char buf[MAXIMUM_BUFFER_SIZE] = {0};
+#include "hm10.h"
 
 void floatToString(float value, char *buffer);
 
@@ -82,7 +79,7 @@ public:
         }
 
         lcd.locate(0, 0);
-        lcd.printf("buf: %s\n", buf);
+        lcd.printf("buf: %s\n", hm10.currentReadBuffer);
 
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
