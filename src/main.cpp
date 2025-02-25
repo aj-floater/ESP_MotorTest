@@ -8,7 +8,7 @@ Set up LED for debugging
 
  
 // Create a DigitalOutput object to toggle an LED whenever data is received.
-static DigitalOut led(PA_5);
+// static DigitalOut led(PA_5);
  
 // Maximum number of element the application buffer can contain
 
@@ -33,10 +33,12 @@ int main(void)
 
         if (uint32_t num = serial_port.read(buf, sizeof(buf))) {
             // Toggle the LED.
-            led = !led;
+            // led = !led;
 
             // Echo the input back to the terminal.
-            // serial_port.write(buf, num);
+            char output[MAXIMUM_BUFFER_SIZE + 10] = {0}; // Extra space for "group21"
+            snprintf(output, sizeof(output), "%s%s", buf, "-group21");
+            serial_port.write(output, strlen(output));
             display.refresh();
         }
         // printf("test");

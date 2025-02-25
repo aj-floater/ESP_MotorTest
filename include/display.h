@@ -8,7 +8,7 @@
 
 #define MAXIMUM_BUFFER_SIZE                                                  32
 // Application buffer to receive the data
-char buf[MAXIMUM_BUFFER_SIZE];
+char buf[MAXIMUM_BUFFER_SIZE] = {0};
 
 void floatToString(float value, char *buffer);
 
@@ -82,7 +82,7 @@ public:
         }
 
         lcd.locate(0, 0);
-        lcd.printf("buf:");
+        lcd.printf("buf: %s\n", buf);
 
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
