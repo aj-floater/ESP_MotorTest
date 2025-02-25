@@ -58,8 +58,8 @@ void MoveForward(float distance, PwmOut &Motor1, PwmOut &Motor2, Integrator &I1,
     I1.reset();
     I2.reset();
 
-    Motor1.write(0.7f);
-    Motor2.write(0.7f);
+    Motor1.write(0.0f);
+    Motor2.write(0.0f);
 
     float d1, d2;
 
@@ -82,8 +82,8 @@ void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOu
     {
         Direction1.write(0);
 
-        Motor1.write(0.7f);
-        Motor2.write(0.7f); 
+        Motor1.write(0.0f);
+        Motor2.write(0.0f); 
 
         float a;
 
@@ -96,8 +96,8 @@ void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOu
     }else{
             Direction2.write(0);
 
-            Motor1.write(0.7f);
-            Motor2.write(0.7f); 
+            Motor1.write(0.0f);
+            Motor2.write(0.0f); 
 
             float a;
     

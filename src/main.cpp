@@ -33,14 +33,14 @@ int main(void){
         Enable.write(1);
     
 
-    // Encoders setup
-    Encoder Encoder1(PA_11,PA_12,0);
-    Encoder Encoder2(PC_7,PA_9,1);
+        // Encoders setup
+        Encoder Encoder1(PA_11,PA_12,0);
+        Encoder Encoder2(PC_7,PA_9,1);
 
-    Encoder1.initialise();
-    Encoder2.initialise();
+        Encoder1.initialise();
+        Encoder2.initialise();
 
-    // Integrator setup
+        // Integrator setup
         Integrator I1(1000.0f);
         I1.start(callback(&Encoder1,&Encoder::speed_linear));
         Integrator I2(1000.0f);
@@ -52,7 +52,7 @@ int main(void){
         };
         I3.start(RobotAngularV_Callback);
 
-    // float issue
+        // float issue
         char buffer1[50];
         char buffer2[50];
 
@@ -70,23 +70,23 @@ int main(void){
         wait_us(5000000);
 
 
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         
         Turn(3.1415, Motor1, Motor2, I3, Direction1, Direction2);
 
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
         Turn(-1.57, Motor1, Motor2, I3, Direction1, Direction2);
-        MoveForward(0.5, Motor1, Motor2, I1, I2);
+        MoveForward(1.0f, Motor1, Motor2, I1, I2);
 
 
 

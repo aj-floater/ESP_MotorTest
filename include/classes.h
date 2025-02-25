@@ -1,5 +1,8 @@
 #include "mbed.h" 
 
+
+// This class create Encoders objects.
+// Speed Linear and Angular can be measured.
 class Encoder {
 
     public:
@@ -66,74 +69,7 @@ class Encoder {
     void ChanelB_countISR(void){countB++;}
 };
 
-// class Wheel {
-//     private:
-//     public:
-//         float desired_speed;
-//         float measured_speed;
-    
-//         float proportional_gain;
-//         float previous_error;
-    
-//         float control_output;
-    
-//         Encoder encoder;
-//         PwmOut motor;
-    
-//         Wheel(float Kp, PinName ChA, PinName ChB, PinName pwm, float frequency) : 
-//             proportional_gain(Kp), 
-//             encoder(ChA, ChB),
-//             motor(pwm)
-//         {
-//             encoder.initialise();
-    
-//             motor.period_us(45);
-//             motor.write(1.0f);
-    
-//             desired_speed = 0.0f;
-//             measured_speed = 0.0f;
-//             control_output = 1.0f;
-//         }
-    
-//         float measured_speed_angular() { return encoder.speed_angular(); };
-//         float measured_speed_linear() { return encoder.speed_linear(); };
-    
-//         // Set speed in rad/s
-//         float speed(float s){
-//             desired_speed = s;
-//             return 0;
-//         }
-//         float speed(){
-//             return desired_speed;
-//         }
-    
-//         // Calculate the error e(t) = Desired Speed − Measured Speed
-//         float error(){
-//             return measured_speed_angular() - desired_speed;
-//         }
-    
-//         // Calculate the control output (ie the PWM duty cycle)
-//         void pControl(){
-//             float Et = error(); // gets the error at the current time
-    
-//             float proportional_term = proportional_gain * Et;
-//             control_output += proportional_term;
-    
-//             // Setup values for next iteration
-//             previous_error = Et;
-//         }
-    
-//         void update(){
-//             // Clamp final output to 0.0f and 1.0f
-//             // pControl();
-//             control_output = 1 - desired_speed/50;
-    
-//             if (control_output < 0.0f) control_output = 0.0f;
-//             else if (control_output > 1.0f) control_output = 1.0f;
-    
-//             motor.write(control_output);
-//         }
-//     };
+
 
     // This class creates Integrator objects. 
     // Why? the code will be long and throughout it we will certainly need to perform simultaneous integrations
@@ -194,3 +130,93 @@ class Integrator {
         float            _update_freq; // Integration frequency (Hz)
         volatile float            _integral;    // Accumulated integral
     };
+
+
+
+    // This class will create PID objects.
+    // It can be used to perform PID control on any measured quantity.
+class PID{
+    private:
+    Ticker PID_Cycle, error_Cycle;
+    Callback<float()> _input_func;
+    Integrator Integration;
+    float volatile prev_error;
+    float volatile output = 0.0f;
+    float volatile error = 0.0f;
+
+    float derivative_filtered;   
+    float alpha;      
+
+    public:
+        float setpoint, Kp, Ki, Kd, max_out, min_out, freq;
+
+        
+        PID(float setpoint,
+             float Kp,
+              float Ki,
+               float Kd,
+                float max_out,
+                 float min_out,
+                  float freq)
+                  :Kp(Kp),
+                   Ki(Ki),
+                    Kd(Kd),
+                     max_out(max_out),
+                      min_out(min_out),
+                       freq(freq),
+                        setpoint(setpoint),
+                         Integration(freq * 10.0f),
+                         alpha(0.9f),
+                         derivative_filtered(0.0f){}
+        
+        void start(Callback<float()> input_func){
+            _input_func = input_func;
+            Integration.start(callback(this, &PID::get_error));
+            error_Cycle.attach(callback(this, &PID::error_ISR), 1.0f / (freq * 10.0f));
+            PID_Cycle.attach(callback(this, &PID::PID_Cycle_ISR), 1.0f / freq);
+        }
+
+        float get_error(void){
+            return error;
+        }
+
+        float get_output(void){
+            return output;
+        }
+
+        void stop() {
+            PID_Cycle.detach();
+            error_Cycle.detach();
+            Integration.stop();
+        }
+
+    protected:
+
+
+        void error_ISR(void){
+            prev_error = error;
+            error = setpoint - _input_func.call();
+        }
+
+        void PID_Cycle_ISR(void){
+
+            float proportional = Kp * error;
+
+            float integral = Ki * Integration.getIntegral();
+
+            float derivativeRaw = ((error - prev_error)/(1.0f/(freq*10.0f)));
+            derivative_filtered = alpha * derivative_filtered + (1.0f - alpha) * derivativeRaw;
+            float derivative = Kd * derivative_filtered;
+
+            output = proportional + integral + derivative;
+
+            if (output >= max_out)
+            {
+                output = max_out;
+            } else if (output <= min_out)
+            {
+                output = min_out;
+            }     
+
+        }
+};
