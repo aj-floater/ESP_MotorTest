@@ -57,11 +57,12 @@ void floatToString(float value, char *buffer) {
 
 class Display {
 private:
+
+public:
     C12832 lcd;
     bool screenNeedsRefresh;
     char buffer[50];  // Buffer for number-to-string conversion
-
-public:
+    
     // Constructor
     Display(PinName mosi, PinName sck, PinName reset, PinName a0, PinName ncs)
         : lcd(mosi, sck, reset, a0, ncs), screenNeedsRefresh(false) {}

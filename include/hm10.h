@@ -55,14 +55,31 @@ public:
         // Future update logic can be added here.
     }
 
-    // Encode data: placeholder that takes a dynamic array of floats.
+    // Encode data: placeholder that will output to a dynamic array of floats.
     void encodeData(const float* data, size_t size) {
         // Future encoding logic can be implemented here.
     }
 
     // Decode data: placeholder that takes a dynamic array of floats.
-    void decodeData(const float* data, size_t size) {
-        // Future decoding logic can be implemented here.
+    float* decodeData(size_t& outSize) {
+        // Count how many floats by counting commas.
+        outSize = 1; // at least one value.
+        for (size_t i = 0; i < strlen(currentReadBuffer); i++) {
+            if (currentReadBuffer[i] == ',') {
+                outSize++;
+            }
+        }
+        // Allocate an array of floats.
+        float* values = new float[outSize];
+        size_t index = 0;
+
+        // Use strtok to tokenize the string.
+        char* token = strtok(currentReadBuffer, ",");
+        while (token != NULL && index < outSize) {
+            values[index++] = strtof(token, NULL);
+            token = strtok(NULL, ",");
+        }
+        return values;
     }
 };
 
