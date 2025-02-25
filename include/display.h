@@ -5,7 +5,9 @@
 #include "C12832.h"
 
 #include "wheel.h"
-#include "hm10.h"
+
+float currentLeft = 0.0f;
+float currentRight = 0.0f;
 
 void floatToString(float value, char *buffer);
 
@@ -62,7 +64,7 @@ public:
     C12832 lcd;
     bool screenNeedsRefresh;
     char buffer[50];  // Buffer for number-to-string conversion
-    
+
     // Constructor
     Display(PinName mosi, PinName sck, PinName reset, PinName a0, PinName ncs)
         : lcd(mosi, sck, reset, a0, ncs), screenNeedsRefresh(false) {}
@@ -79,15 +81,15 @@ public:
             screenNeedsRefresh = false;
         }
 
-        lcd.locate(0, 0);
-        lcd.printf("buf: %s\n", hm10.currentReadBuffer);
+        // lcd.locate(0, 0);
+        // lcd.printf("buf: %s\n", hm10.currentReadBuffer);
 
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
         
-        // lcd.locate(80, 0);
-        // floatToString(right_wheel.desired_speed, buffer);
-        // lcd.printf("rs: %s\n", buffer);
+        lcd.locate(80, 0);
+        floatToString(currentLeft, buffer);
+        lcd.printf("l: %s\n", buffer);
         // // floatToString(right_wheel.integral_gain, buffer);
         // // lcd.printf("Ki: %s\n", buffer);
         // // floatToString(right_wheel.derivative_gain, buffer);
@@ -97,9 +99,9 @@ public:
         // floatToString(deadband, buffer);
         // lcd.printf("db: %s\n", buffer);
 
-        // lcd.locate(80, 10);
-        // floatToString(minScaleFactor, buffer);
-        // lcd.printf("mSF: %s\n", buffer);
+        lcd.locate(80, 10);
+        floatToString(currentRight, buffer);
+        lcd.printf("r: %s\n", buffer);
 
         // lcd.locate(0, 20);
         // floatToString(Kp, buffer);

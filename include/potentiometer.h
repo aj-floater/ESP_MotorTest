@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "wheel.h"
+
 #include "display.h"
 
 // Header file content goes here
@@ -30,10 +31,14 @@ public:
         readSignal = true;
     }
 
-    float getCurrentSampleNorm(void) {
+    float getCurrentSampleMapped(void) {
         // Map currentSampleNorm (0.0 - 1.0) to the custom range
         float mappedValue = range[0] + (currentSampleNorm * (range[1] - range[0]));
         return truncateTo4DP(mappedValue);
+    }
+
+    float getCurrentSampleNorm(void) {
+        return truncateTo4DP(currentSampleNorm);
     }
 
     void setRange(float s, float e){
@@ -59,12 +64,11 @@ public:
     void update() {
         if (readSignal){
             float input = inputSignal.read();  // Read normalized value
-            if (input == currentSampleNorm){
+            if (fabs(input - currentSampleNorm) > 0.05f) {
                 display.markRefreshNeeded();
+                currentSampleNorm = input;
             }
     
-            currentSampleNorm = input;
-
             readSignal = false;
         }
     }
@@ -84,10 +88,13 @@ void modify(float left, float right){
     // right_wheel.speed(right);
     // left_wheel.speed(left);
 
-    Kp = left;
+    // Kp = left;
     // Kp_straight = right;
-    minScaleFactor = right;
+    // minScaleFactor = right;
     // deadband = right;
+
+    currentLeft = left;
+    currentRight = right;
 }
 
 

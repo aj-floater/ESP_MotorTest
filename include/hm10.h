@@ -21,6 +21,7 @@ public:
     HM10(PinName tx, PinName rx) : serial_port(tx, rx) {
         serial_port.set_baud(9600);
         serial_port.set_format(8, BufferedSerial::None, 1);
+        serial_port.set_blocking(false);
 
         // Initialize the buffers
         memset(currentWriteBuffer, 0, sizeof(currentWriteBuffer));
@@ -55,9 +56,21 @@ public:
         // Future update logic can be added here.
     }
 
-    // Encode data: placeholder that will output to a dynamic array of floats.
+    // Encode a dynamic array of floats into a comma-separated string.
     void encodeData(const float* data, size_t size) {
-        // Future encoding logic can be implemented here.
+        // Clear the buffer.
+        memset(currentWriteBuffer, 0, BUFFER_SIZE);
+        char temp[16]; // Temporary buffer for each float conversion.
+        for (size_t i = 0; i < size; i++) {
+            // Convert each float to string; adjust format as needed.
+            snprintf(temp, sizeof(temp), "%.3f", data[i]);
+            strncat(currentWriteBuffer, temp, BUFFER_SIZE - strlen(currentWriteBuffer) - 1);
+            if (i < size - 1) {
+                // Append a comma if not the last element.
+                strncat(currentWriteBuffer, ",", BUFFER_SIZE - strlen(currentWriteBuffer) - 1);
+            }
+        }
+        // currentWriteBuffer now contains the encoded data.
     }
 
     // Decode a comma-separated string of floats from currentReadBuffer.
