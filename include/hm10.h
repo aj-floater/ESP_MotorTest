@@ -42,6 +42,11 @@ public:
     float read() {
         char tempBuffer[BUFFER_SIZE] = {0};
         uint32_t num = serial_port.read(tempBuffer, sizeof(tempBuffer) - 1);
+        // Check for -EAGAIN (i.e., no data available in non-blocking mode)
+        if (num == -EAGAIN) {
+            // Return immediately if no data is available.
+            return -EAGAIN;
+        }
         if (num > 0) {
             tempBuffer[num] = '\0'; // Ensure null-termination
             // Copy the received data into currentReadBuffer
