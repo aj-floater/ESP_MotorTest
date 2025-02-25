@@ -64,7 +64,7 @@ public:
     void update() {
         if (readSignal){
             float input = inputSignal.read();  // Read normalized value
-            if (fabs(input - currentSampleNorm) > 0.05f) {
+            if (fabs(input - currentSampleNorm) > 0.005f) {
                 display.markRefreshNeeded();
                 currentSampleNorm = input;
             }

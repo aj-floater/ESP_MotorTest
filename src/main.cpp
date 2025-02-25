@@ -23,7 +23,10 @@ void decodingProcedure() { // >123.45,12.345,67.89
 }
 
 void encodingProcedure(){
+    float encodingFloats[2] = {LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped()};
 
+    hm10.encodeData(encodingFloats, 2);
+    hm10.write();
 }
 
 int main(void)
@@ -37,11 +40,12 @@ int main(void)
         modify(LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped());
 
         display.refresh();
+        encodingProcedure();
 
         if (uint32_t num = hm10.read()) {
             decodingProcedure();
 
-            encodingProcedure();
+            // encodingProcedure();
         }
     }
 }

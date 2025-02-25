@@ -5,6 +5,8 @@
 #include <string>
 #include <cstring>
 
+void floatToString(float value, char *buffer);
+
 #define MAXIMUM_BUFFER_SIZE 32
 class HM10 {
   private:
@@ -38,6 +40,12 @@ public:
         serial_port.write(currentWriteBuffer, strlen(currentWriteBuffer));
     }
 
+    // Write function: writes the given string to the serial port and stores it in currentWriteBuffer
+    void write() {
+        // Write the contents of currentWriteBuffer to the serial port
+        serial_port.write(currentWriteBuffer, strlen(currentWriteBuffer));
+    }
+
     // Read function: reads available data from the serial port and stores it in currentReadBuffer
     float read() {
         char tempBuffer[BUFFER_SIZE] = {0};
@@ -62,13 +70,14 @@ public:
     }
 
     // Encode a dynamic array of floats into a comma-separated string.
+    // Save that encoded data into the currentWriteBuffer
     void encodeData(const float* data, size_t size) {
         // Clear the buffer.
         memset(currentWriteBuffer, 0, BUFFER_SIZE);
         char temp[16]; // Temporary buffer for each float conversion.
         for (size_t i = 0; i < size; i++) {
             // Convert each float to string; adjust format as needed.
-            snprintf(temp, sizeof(temp), "%.3f", data[i]);
+            floatToString(data[i], temp);
             strncat(currentWriteBuffer, temp, BUFFER_SIZE - strlen(currentWriteBuffer) - 1);
             if (i < size - 1) {
                 // Append a comma if not the last element.
