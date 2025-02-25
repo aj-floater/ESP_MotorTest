@@ -60,7 +60,8 @@ public:
         // Future encoding logic can be implemented here.
     }
 
-    // Decode data: placeholder that takes a dynamic array of floats.
+    // Decode a comma-separated string of floats from currentReadBuffer.
+    // The outSize parameter will be set to the number of floats.
     float* decodeData(size_t& outSize) {
         // Count how many floats by counting commas.
         outSize = 1; // at least one value.
