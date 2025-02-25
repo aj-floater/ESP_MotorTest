@@ -6,12 +6,9 @@
 
 #include "wheel.h"
 
-float deadband = 0.05f;
-float Kp = 9.0f;             // Proportional gain - tune as needed
-float Kp_straight = 2.35f;  // Tune this parameter
-float minScaleFactor = 0.8f; // At least 80% of speed, tune as needed
-float i = 0;
-float a = 0;
+#define MAXIMUM_BUFFER_SIZE                                                  32
+// Application buffer to receive the data
+char buf[MAXIMUM_BUFFER_SIZE];
 
 void floatToString(float value, char *buffer);
 
@@ -85,34 +82,34 @@ public:
         }
 
         lcd.locate(0, 0);
-        floatToString(left_wheel.desired_speed, buffer);
-        lcd.printf("ls: %s\n", buffer);
+        lcd.printf("buf:");
+
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
         
-        lcd.locate(80, 0);
-        floatToString(right_wheel.desired_speed, buffer);
-        lcd.printf("rs: %s\n", buffer);
-        // floatToString(right_wheel.integral_gain, buffer);
-        // lcd.printf("Ki: %s\n", buffer);
-        // floatToString(right_wheel.derivative_gain, buffer);
-        // lcd.printf("Kd: %s\n", buffer);
+        // lcd.locate(80, 0);
+        // floatToString(right_wheel.desired_speed, buffer);
+        // lcd.printf("rs: %s\n", buffer);
+        // // floatToString(right_wheel.integral_gain, buffer);
+        // // lcd.printf("Ki: %s\n", buffer);
+        // // floatToString(right_wheel.derivative_gain, buffer);
+        // // lcd.printf("Kd: %s\n", buffer);
 
-        lcd.locate(0, 10);
-        floatToString(deadband, buffer);
-        lcd.printf("db: %s\n", buffer);
+        // lcd.locate(0, 10);
+        // floatToString(deadband, buffer);
+        // lcd.printf("db: %s\n", buffer);
 
-        lcd.locate(80, 10);
-        floatToString(minScaleFactor, buffer);
-        lcd.printf("mSF: %s\n", buffer);
+        // lcd.locate(80, 10);
+        // floatToString(minScaleFactor, buffer);
+        // lcd.printf("mSF: %s\n", buffer);
 
-        lcd.locate(0, 20);
-        floatToString(Kp, buffer);
-        lcd.printf("kp: %s\n", buffer);
+        // lcd.locate(0, 20);
+        // floatToString(Kp, buffer);
+        // lcd.printf("kp: %s\n", buffer);
 
-        lcd.locate(80, 20);
-        floatToString(Kp_straight, buffer);
-        lcd.printf("kps: %s\n", buffer);
+        // lcd.locate(80, 20);
+        // floatToString(Kp_straight, buffer);
+        // lcd.printf("kps: %s\n", buffer);
     }
 };
 

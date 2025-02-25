@@ -1,17 +1,18 @@
 #include "mbed.h"
 #include "display.h"
-/* Set up serial communication between the HM-10 module and the Nucleo board
- For debugging and setting up the module, set up serial between Nucleo and PC
- Set up LED for debugging*/
+/* 
+Set up serial communication between the HM-10 module and the Nucleo board
+For debugging and setting up the module, set up serial between Nucleo and PC
+Set up LED for debugging
+*/
 
  
- // Create a DigitalOutput object to toggle an LED whenever data is received.
- static DigitalOut led(PA_5);
+// Create a DigitalOutput object to toggle an LED whenever data is received.
+static DigitalOut led(PA_5);
  
-//  // Maximum number of element the application buffer can contain
- #define MAXIMUM_BUFFER_SIZE                                                  32
+// Maximum number of element the application buffer can contain
 
-// // Create a BufferedSerial object with a default baud rate.
+// Create a BufferedSerial object with a default baud rate.
 static BufferedSerial serial_port(PA_11, PA_12);
 
 int main(void)
@@ -23,9 +24,6 @@ int main(void)
         /* parity */ BufferedSerial::None,
         /* stop bit */ 1
     );
-
-    // Application buffer to receive the data
-    char buf[MAXIMUM_BUFFER_SIZE] = {0};
 
     // float i = 0;
 
@@ -39,8 +37,10 @@ int main(void)
 
             // Echo the input back to the terminal.
             // serial_port.write(buf, num);
+            display.refresh();
         }
         // printf("test");
+
 
         // floatToString(i, buf);
         // serial_port.write(buf, sizeof(buf));
