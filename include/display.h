@@ -99,13 +99,13 @@ public:
         floatToString(right_wheel.measured_speed_angular(), buffer);
         lcd.printf("rms: %s\n", buffer);
 
-        // lcd.locate(0, 20);
-        // floatToString(right_wheel.error(), buffer);
-        // lcd.printf("e: %s\n", buffer);
+        lcd.locate(0, 20);
+        floatToString(left_wheel.measured_speed_linear(), buffer);
+        lcd.printf("lml: %s\n", buffer);
 
-        // lcd.locate(80, 20);
-        // floatToString(right_wheel.control_output, buffer);
-        // lcd.printf("o: %s\n", buffer);
+        lcd.locate(80, 20);
+        floatToString(right_wheel.measured_speed_linear(), buffer);
+        lcd.printf("rml: %s\n", buffer);
     }
 };
 
