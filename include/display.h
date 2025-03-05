@@ -6,12 +6,8 @@
 
 #include "wheel.h"
 
-float deadband = 0.05f;
-float Kp = 9.0f;             // Proportional gain - tune as needed
-float Kp_straight = 2.35f;  // Tune this parameter
-float minScaleFactor = 0.8f; // At least 80% of speed, tune as needed
-float i = 0;
-float a = 0;
+float currentLeft = 0.0f;
+float currentRight = 0.0f;
 
 void floatToString(float value, char *buffer);
 
@@ -63,11 +59,12 @@ void floatToString(float value, char *buffer) {
 
 class Display {
 private:
+
+public:
     C12832 lcd;
     bool screenNeedsRefresh;
     char buffer[50];  // Buffer for number-to-string conversion
 
-public:
     // Constructor
     Display(PinName mosi, PinName sck, PinName reset, PinName a0, PinName ncs)
         : lcd(mosi, sck, reset, a0, ncs), screenNeedsRefresh(false) {}
@@ -84,35 +81,35 @@ public:
             screenNeedsRefresh = false;
         }
 
-        lcd.locate(0, 0);
-        floatToString(left_wheel.desired_speed, buffer);
-        lcd.printf("ls: %s\n", buffer);
+        // lcd.locate(0, 0);
+        // lcd.printf("buf: %s\n", hm10.currentReadBuffer);
+
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
         
         lcd.locate(80, 0);
-        floatToString(right_wheel.desired_speed, buffer);
-        lcd.printf("rs: %s\n", buffer);
-        // floatToString(right_wheel.integral_gain, buffer);
-        // lcd.printf("Ki: %s\n", buffer);
-        // floatToString(right_wheel.derivative_gain, buffer);
-        // lcd.printf("Kd: %s\n", buffer);
+        floatToString(currentLeft, buffer);
+        lcd.printf("l: %s\n", buffer);
+        // // floatToString(right_wheel.integral_gain, buffer);
+        // // lcd.printf("Ki: %s\n", buffer);
+        // // floatToString(right_wheel.derivative_gain, buffer);
+        // // lcd.printf("Kd: %s\n", buffer);
 
-        lcd.locate(0, 10);
-        floatToString(deadband, buffer);
-        lcd.printf("db: %s\n", buffer);
+        // lcd.locate(0, 10);
+        // floatToString(deadband, buffer);
+        // lcd.printf("db: %s\n", buffer);
 
         lcd.locate(80, 10);
-        floatToString(minScaleFactor, buffer);
-        lcd.printf("mSF: %s\n", buffer);
+        floatToString(currentRight, buffer);
+        lcd.printf("r: %s\n", buffer);
 
-        lcd.locate(0, 20);
-        floatToString(Kp, buffer);
-        lcd.printf("kp: %s\n", buffer);
+        // lcd.locate(0, 20);
+        // floatToString(Kp, buffer);
+        // lcd.printf("kp: %s\n", buffer);
 
-        lcd.locate(80, 20);
-        floatToString(Kp_straight, buffer);
-        lcd.printf("kps: %s\n", buffer);
+        // lcd.locate(80, 20);
+        // floatToString(Kp_straight, buffer);
+        // lcd.printf("kps: %s\n", buffer);
     }
 };
 
