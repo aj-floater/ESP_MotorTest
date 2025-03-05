@@ -121,7 +121,7 @@ public:
     }
 };
 
-Wheel right_wheel(0.008f, 0.0035f, 0.0009f, 0.028f, PA_12, PA_11, PC_6, PB_14, 1);
+Wheel right_wheel(0.008f, 0.0035f, 0.0009f, 0.028f, PC_2, PC_3, PC_6, PB_14, 1);
 Wheel left_wheel(0.008f, 0.0035f, 0.0009f, 0.0262f, PC_7, PA_9, PC_8, PB_1, 0);
 
 #endif // End of include guard
