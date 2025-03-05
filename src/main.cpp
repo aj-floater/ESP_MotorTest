@@ -11,20 +11,23 @@ void decodingProcedure() { // >123.45,12.345,67.89
     size_t numFloats = 0;
     float* decodedFloats = hm10.decodeData(numFloats);
 
-    if (decodedFloats[0] == 1){
+    if (decodedFloats[0] >= 180){
         FLASH_LED = 0;
     } else {
         FLASH_LED = 1;
     }
+
+    // if (decodedFloats[0] >= 255) decodedFloats[0] = 0;
+    // if (decodedFloats[1] >= 255) decodedFloats[1] = 0;
 
     // Display
     char buffer[50];
     display.lcd.locate(0,0);
     floatToString(decodedFloats[0], buffer);
     display.lcd.printf(buffer);
-    // display.lcd.locate(0,10);
-    // floatToString(decodedFloats[1], buffer);
-    // display.lcd.printf(buffer);
+    display.lcd.locate(0,10);
+    floatToString(decodedFloats[1], buffer);
+    display.lcd.printf(buffer);
     // display.lcd.locate(0,20);
     // floatToString(decodedFloats[2], buffer);
     // display.lcd.printf(buffer);
