@@ -2,6 +2,9 @@
 #define HM10_H
 
 #include "mbed.h"
+
+#include "potentiometer.h"
+
 #include <string>
 #include <cstring>
 
@@ -53,6 +56,7 @@ public:
         // Check for -EAGAIN (i.e., no data available in non-blocking mode)
         if (num == -EAGAIN) {
             // Return immediately if no data is available.
+            // currentReadBuffer = 
             return -EAGAIN;
         }
         if (num > 0) {
@@ -112,5 +116,53 @@ public:
 };
 
 HM10 hm10(PA_11, PA_12);
+
+class Controller {
+public:
+    float leftJoystickY = 0.0f;
+    float rightJoystickX = 0.0f;
+
+    // Maps [0..128] to [1..0], and [128..255] to [0..-1].
+    float mapJoystickValue(float val)
+    {
+        // Clamp just to be safe if something goes out of range:
+        if (val < 0.0f)   val = 0.0f;
+        if (val > 255.0f) val = 255.0f;
+
+        if (val < 128.0f)
+        {
+            // Scale [0..128] -> [1..0]
+            return 1.0f - (val / 128.0f);
+        }
+        else if (val == 128.0f){
+            return 0.0f;
+        }
+        else
+        {
+            // Scale (128..255] -> (0..-1]
+            // 255 - 128 = 127, so we divide by 127 for that half
+            return -((val - 128.0f) / 127.0f);
+        }
+    }
+};
+
+Controller stadia;
+
+
+void decodingProcedure() { // >123.45,12.345,67.89
+    // Call decodeData to parse the string into an array of floats.
+    size_t numFloats = 0;
+    float* decodedFloats = hm10.decodeData(numFloats);
+
+    stadia.leftJoystickY  = stadia.mapJoystickValue(decodedFloats[0]);
+    stadia.rightJoystickX = stadia.mapJoystickValue(decodedFloats[1]);
+    
+    // Display
+    char buffer1[50];
+    char buffer2[50];
+    floatToString(decodedFloats[0], buffer1);
+    floatToString(decodedFloats[1], buffer2);
+    // printf("readbuffer: %s. values: %s, %s\n", hm10.currentReadBuffer, buffer1, buffer2);
+}
 
 #endif // HM10_H

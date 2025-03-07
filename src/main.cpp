@@ -1,40 +1,15 @@
 #include "mbed.h"
-#include "display.h"
+
 #include "hm10.h"
 
 #include "potentiometer.h"
-
-DigitalOut FLASH_LED(D9);
-
-void decodingProcedure() { // >123.45,12.345,67.89
-    // Call decodeData to parse the string into an array of floats.
-    size_t numFloats = 0;
-    float* decodedFloats = hm10.decodeData(numFloats);
-
-    if (decodedFloats[0] >= 180){
-        FLASH_LED = 0;
-    } else {
-        FLASH_LED = 1;
-    }
-
-    // if (decodedFloats[0] >= 255) decodedFloats[0] = 0;
-    // if (decodedFloats[1] >= 255) decodedFloats[1] = 0;
-
-    // Display
-    char buffer[50];
-    display.lcd.locate(0,0);
-    floatToString(decodedFloats[0], buffer);
-    display.lcd.printf(buffer);
-    display.lcd.locate(0,10);
-    floatToString(decodedFloats[1], buffer);
-    display.lcd.printf(buffer);
-    // display.lcd.locate(0,20);
-    // floatToString(decodedFloats[2], buffer);
-    // display.lcd.printf(buffer);
-}
+#include "input.h"
+#include "encoder.h"
+#include "wheel.h"
+#include "display.h"
 
 void encodingProcedure(){
-    float encodingFloats[2] = {LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped()};
+    float encodingFloats[2] = {left_wheel.measured_speed_angular(), right_wheel.measured_speed_angular()};
 
     hm10.encodeData(encodingFloats, 2);
     hm10.write();
@@ -42,24 +17,51 @@ void encodingProcedure(){
 
 int main(void)
 {
-    FLASH_LED = 1.0f;
+    // Pin Setup
+    // ----------------------------
+    DigitalOut Bipolar1(PB_13);
+    Bipolar1.write(0);
+    // DigitalOut Direction1(PB_14);
+    // Direction1.write(1);
+    // PwmOut Motor1(PC_6);
+    DigitalOut Bipolar2(PB_15);
+    Bipolar2.write(0);
+    // DigitalOut Direction2(PB_1);
+    // Direction2.write(1);
+    // PwmOut Motor2(PC_8);
+    DigitalOut Enable(PB_2);
+    Enable.write(1);
+    // ----------------------------
 
     LeftPot.setRange(0.0f, 15.0f); // 0.005
     RightPot.setRange(0.0f, 0.2f); // 0.0014
 
+    right_wheel.speed(0.0f);
+    left_wheel.speed(0.0f);
+
     while (1) {
         LeftPot.update();
         RightPot.update();
-        modify(LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped());
+        // modify(LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped());
 
         display.refresh();
+
         encodingProcedure();
-
-        if (uint32_t num = hm10.read()) {
-            // FLASH_LED = !FLASH_LED;
+        if (hm10.read() != -EAGAIN) {
             decodingProcedure();
-
-            // encodingProcedure();
         }
+
+        float turning_speed = 10.0f;
+        float forward_speed = 30.0f;
+
+        if (stadia.leftJoystickY == 0.0f)
+            turning_speed = 20.0f;
+        else turning_speed = 10.0f;
+
+        right_wheel.speed(stadia.leftJoystickY * forward_speed + stadia.rightJoystickX * turning_speed);
+        left_wheel.speed(stadia.leftJoystickY * forward_speed + -stadia.rightJoystickX * turning_speed);
+
+        right_wheel.update();
+        left_wheel.update();
     }
 }
