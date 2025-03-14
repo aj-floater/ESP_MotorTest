@@ -57,7 +57,7 @@ class Encoder {
             if(ChanelB.read()==1){direction = true;}else{direction = false;}
             break;
         case false: 
-            if(ChanelB.read()==1){direction = true;}else{direction = false;}
+            if(ChanelB.read()==1){direction = false;}else{direction = true;}
             break;
         
         default:

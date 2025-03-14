@@ -59,8 +59,8 @@ int main(void){
         float speed, distance;
 
         // PID
-        PID Right(1.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.0f, 100); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
-        PID Left(1.0f, 1.0f, 0.0f, 0.0f, 4.0f, 0.0f, 100);
+        PID Right(1.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f, 100); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
+        PID Left(1.0f, 4.0f, 0.0f, 0.0f, 4.0f, 0.0f, 100);
 
         Left.start(callback(&Encoder2,&Encoder::speed_linear));
         Right.start(callback(&Encoder1,&Encoder::speed_linear));
