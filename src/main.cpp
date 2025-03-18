@@ -9,9 +9,14 @@
 #include "display.h"
 
 void encodingProcedure(){
-    float encodingFloats[2] = {left_wheel.measured_speed_angular(), right_wheel.measured_speed_angular()};
+    float encodingFloats[4] = {
+        left_wheel.measured_speed_angular(),
+        left_wheel.desired_speed,
+        right_wheel.measured_speed_angular(),
+        right_wheel.desired_speed
+    };
 
-    hm10.encodeData(encodingFloats, 2);
+    hm10.encodeData(encodingFloats, 4);
     hm10.write();
 }
 
@@ -51,17 +56,17 @@ int main(void)
             decodingProcedure();
         }
 
-        float turning_speed = 10.0f;
-        float forward_speed = 30.0f;
+        // float turning_speed = 10.0f;
+        // float forward_speed = 30.0f;
 
-        if (stadia.leftJoystickY == 0.0f)
-            turning_speed = 20.0f;
-        else turning_speed = 10.0f;
+        // if (stadia.leftJoystickY == 0.0f)
+        //     turning_speed = 20.0f;
+        // else turning_speed = 10.0f;
 
-        right_wheel.speed(stadia.leftJoystickY * forward_speed + stadia.rightJoystickX * turning_speed);
-        left_wheel.speed(stadia.leftJoystickY * forward_speed + -stadia.rightJoystickX * turning_speed);
+        // right_wheel.speed(stadia.leftJoystickY * forward_speed + stadia.rightJoystickX * turning_speed);
+        // left_wheel.speed(stadia.leftJoystickY * forward_speed + -stadia.rightJoystickX * turning_speed);
 
-        right_wheel.update();
-        left_wheel.update();
+        // right_wheel.update();
+        // left_wheel.update();
     }
 }

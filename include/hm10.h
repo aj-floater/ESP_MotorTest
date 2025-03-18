@@ -78,7 +78,7 @@ public:
     void encodeData(const float* data, size_t size) {
         // Clear the buffer.
         memset(currentWriteBuffer, 0, BUFFER_SIZE);
-        char temp[16]; // Temporary buffer for each float conversion.
+        char temp[25]; // Temporary buffer for each float conversion.
         for (size_t i = 0; i < size; i++) {
             // Convert each float to string; adjust format as needed.
             floatToString(data[i], temp);

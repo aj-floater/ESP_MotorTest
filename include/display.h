@@ -42,7 +42,7 @@ void floatToString(float value, char *buffer) {
     buffer[index++] = '.';
 
     // Convert fractional part (4 decimal places)
-    int precision = 4;
+    int precision = 2;
     float scale = 1;
     for (int i = 0; i < precision; i++) scale *= 10;
 
