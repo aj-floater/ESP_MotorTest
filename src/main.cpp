@@ -53,7 +53,15 @@ int main(void)
 
         encodingProcedure();
         if (hm10.read() != -EAGAIN) {
-            decodingProcedure();
+            // size_t numFloats = 0;
+            // float* decodedFloats = hm10.decodeData(numFloats);
+
+            // hm10.read();
+            
+            display.lcd.cls();
+            display.lcd.locate(0, 0);
+            display.lcd.printf(hm10.currentReadBuffer);
+            // decodingProcedure();
         }
 
         // float turning_speed = 10.0f;

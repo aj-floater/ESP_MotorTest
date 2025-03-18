@@ -87,9 +87,9 @@ public:
         // floatToString(right_wheel.proportional_gain, buffer);
         // lcd.printf("Kp: %s\n", buffer);
         
-        lcd.locate(80, 0);
-        floatToString(currentLeft, buffer);
-        lcd.printf("l: %s\n", buffer);
+        // lcd.locate(80, 0);
+        // floatToString(currentLeft, buffer);
+        // lcd.printf("l: %s\n", buffer);
         // // floatToString(right_wheel.integral_gain, buffer);
         // // lcd.printf("Ki: %s\n", buffer);
         // // floatToString(right_wheel.derivative_gain, buffer);
@@ -99,9 +99,9 @@ public:
         // floatToString(deadband, buffer);
         // lcd.printf("db: %s\n", buffer);
 
-        lcd.locate(80, 10);
-        floatToString(currentRight, buffer);
-        lcd.printf("r: %s\n", buffer);
+        // lcd.locate(80, 10);
+        // floatToString(currentRight, buffer);
+        // lcd.printf("r: %s\n", buffer);
 
         // lcd.locate(0, 20);
         // floatToString(Kp, buffer);

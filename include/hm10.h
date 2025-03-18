@@ -78,7 +78,10 @@ public:
     void encodeData(const float* data, size_t size) {
         // Clear the buffer.
         memset(currentWriteBuffer, 0, BUFFER_SIZE);
-        char temp[25]; // Temporary buffer for each float conversion.
+        // Start with the start character '<'
+        currentWriteBuffer[0] = '<';
+        currentWriteBuffer[1] = '\0';
+        char temp[30]; // Temporary buffer for each float conversion.
         for (size_t i = 0; i < size; i++) {
             // Convert each float to string; adjust format as needed.
             floatToString(data[i], temp);
@@ -88,6 +91,8 @@ public:
                 strncat(currentWriteBuffer, ",", BUFFER_SIZE - strlen(currentWriteBuffer) - 1);
             }
         }
+        // Append the end character '>'
+        strncat(currentWriteBuffer, ">", BUFFER_SIZE - strlen(currentWriteBuffer) - 1);
         // currentWriteBuffer now contains the encoded data.
     }
 
