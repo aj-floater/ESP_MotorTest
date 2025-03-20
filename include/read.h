@@ -4,14 +4,14 @@
 #define THRESHOLD 2.8
 
 // Analog Sensors
-AnalogIn left_analog_sensor(A0); 
-AnalogIn right_analog_sensor(A1); 
+AnalogIn left_analog_sensor(A3); 
+AnalogIn right_analog_sensor(A2); 
 
 // Digital Sensors
-DigitalIn leftmost_digital_sensor(A2, PullDown); //up   
-DigitalIn left_inner_digital_sensor(A3, PullDown); //down
-DigitalIn right_inner_digital_sensor(A4, PullDown); //left
-DigitalIn rightmost_digital_sensor(A5, PullDown); //right
+DigitalIn leftmost_digital_sensor(A5, PullDown); //up   
+DigitalIn left_inner_digital_sensor(A4, PullDown); //down
+DigitalIn right_inner_digital_sensor(A1, PullDown); //left
+DigitalIn rightmost_digital_sensor(A0, PullDown); //right
 
 float read_sensor(AnalogIn &sensor) {
     return sensor.read()*3.3;
