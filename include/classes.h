@@ -6,68 +6,93 @@
 class Encoder {
 
     public:
-
-    InterruptIn ChanelA, ChanelB;
-    Ticker Encoder_dt; 
-    float dt = 0.01;
-    volatile float EncoderTick;
-    volatile int countA = 0, countB = 0;
-    volatile bool direction = true;  // true = clockwise, false = counterclockwise
-    bool status;
+        InterruptIn ChanelA, ChanelB;
+        Ticker Encoder_dt; 
     
-
-    Encoder(PinName ChA, PinName ChB, bool Inverted) : ChanelA(ChA), ChanelB(ChB), status(Inverted){}
-
-    void initialise(void){
-        
-        Encoder_dt.attach(callback(this,&Encoder::EncoderCycleISR), dt);
-
-        
-        ChanelA.rise(callback(this,&Encoder::ChanelA_countISR));
-        ChanelB.rise(callback(this,&Encoder::ChanelB_countISR));
-
-    }
-
-    float speed_linear(void){
-        float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
-        float wheelVelocity = 0.078f * 0.5f * radPERseconds;
-
-        if(!direction){wheelVelocity = -1.0f * wheelVelocity;}
-        return wheelVelocity;
-    }
-    float speed_angular(void){
-        float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
-
-        if(!direction){radPERseconds = -1.0f * radPERseconds;}
-        return radPERseconds;
-    }
-
-    protected:
-
-    void EncoderCycleISR(void){
-        EncoderTick = (float(countA)/dt);
-        countA = 0; countB = 0;
-    }
-
-    void ChanelA_countISR(void){
-        countA++; 
-        switch(status)
+        float dt = 0.01f;                // 10 ms ticker interval
+        volatile float EncoderTick = 0;  // Encoder ticks-per-second on Channel A
+        volatile int countA = 0, countB = 0;
+        volatile bool direction = true;  // true = clockwise, false = counterclockwise
+        bool status;                     // Used for inverting direction logic if needed
+    
+        // Low-pass filter variables
+        // Hardcode alpha for a ~25 Hz cutoff at 100 Hz sample rate
+        const float alpha = 0.15f; 
+        volatile float filteredLinearSpeed = 0.0f;
+    
+        // Constructor
+        Encoder(PinName ChA, PinName ChB, bool Inverted)
+            : ChanelA(ChA), ChanelB(ChB), status(Inverted)
         {
-        case true:
-            if(ChanelB.read()==1){direction = true;}else{direction = false;}
-            break;
-        case false: 
-            if(ChanelB.read()==1){direction = false;}else{direction = true;}
-            break;
-        
-        default:
-            break;
         }
-        
-    }
-        
-    void ChanelB_countISR(void){countB++;}
-};
+    
+        // Setup interrupts
+        void initialise(void) {
+            // Attach the periodic interrupt (every dt seconds)
+            Encoder_dt.attach(callback(this, &Encoder::EncoderCycleISR), dt);
+    
+            // Attach rising-edge interrupts for each channel
+            ChanelA.rise(callback(this, &Encoder::ChanelA_countISR));
+            ChanelB.rise(callback(this, &Encoder::ChanelB_countISR));
+        }
+    
+        // Return the filtered linear speed
+        float speed_linear(void) {
+            return filteredLinearSpeed;
+        }
+    
+        // Return the unfiltered angular speed
+        float speed_angular(void) {
+            // Convert ticks/s → rad/s
+            float radPERseconds = (EncoderTick / 256.0f) * 2.0f * 3.141519f;
+            if(!direction) {
+                radPERseconds = -radPERseconds;
+            }
+            return radPERseconds;
+        }
+    
+    protected:
+        // Called every dt seconds
+        void EncoderCycleISR(void) {
+            // (1) Calculate pulses/sec on Channel A
+            EncoderTick = static_cast<float>(countA) / dt;  
+    
+            // (2) Calculate raw linear speed
+            //     rawSpeed (m/s) = (rad/s) * (wheel radius)
+            //     where wheel radius = (0.078 m) * 0.5
+            float rawSpeed = (EncoderTick / 256.0f) * 2.0f * 3.141519f * (0.078f * 0.5f);
+    
+            // Apply direction sign
+            if(!direction) {
+                rawSpeed = -rawSpeed;
+            }
+    
+            // (3) Low-pass filter: y[n] = y[n-1] + alpha * (x[n] - y[n-1])
+            filteredLinearSpeed += alpha * (rawSpeed - filteredLinearSpeed);
+    
+            // (4) Reset counts for next sampling window
+            countA = 0;
+            countB = 0;
+        }
+    
+        void ChanelA_countISR(void) {
+            countA++;
+    
+            // Determine direction by reading Channel B
+            // status == true => normal logic
+            // status == false => inverted logic
+            if (status) {
+                direction = (ChanelB.read() == 1) ? true : false;  
+            } else {
+                direction = (ChanelB.read() == 1) ? false : true; 
+            }
+        }
+    
+        void ChanelB_countISR(void) {
+            countB++;
+            // Not used for direction here, but could be expanded if needed.
+        }
+    };
 
 
 
@@ -140,7 +165,7 @@ class PID{
     Ticker PID_Cycle, error_Cycle;
     Callback<float()> _input_func;
     Integrator Integration;
-    float volatile prev_error;
+    float volatile prev_error, prev_input;
     float volatile output = 0.0f;
     float volatile error = 0.0f;
 
@@ -166,13 +191,12 @@ class PID{
                        freq(freq),
                         setpoint(setpoint),
                          Integration(freq * 10.0f),
-                         alpha(0.9f),
+                         alpha(0.2f),
                          derivative_filtered(0.0f){}
         
         void start(Callback<float()> input_func){
             _input_func = input_func;
             Integration.start(callback(this, &PID::get_error));
-            error_Cycle.attach(callback(this, &PID::error_ISR), 1.0f / (freq * 10.0f));
             PID_Cycle.attach(callback(this, &PID::PID_Cycle_ISR), 1.0f / freq);
         }
 
@@ -193,30 +217,33 @@ class PID{
     protected:
 
 
-        void error_ISR(void){
-            prev_error = error;
-            error = setpoint - _input_func.call();
-        }
 
-        void PID_Cycle_ISR(void){
-
-            float proportional = Kp * error;
-
+        void PID_Cycle_ISR(void) {
+            // sample the input
+            float input = _input_func.call();
+            error = setpoint - input;
+            
+            
+            // compute derivative
+            float derivativeRaw = (error - prev_error) * freq; // multiply by freq if dt=1/freq
+            prev_error = error;  // only update prev_error here
+            prev_input = input;
+        
+            // integrate the error
             float integral = Ki * Integration.getIntegral();
-
-            float derivativeRaw = ((error - prev_error)/(1.0f/(freq*10.0f)));
+            //  if (integral >= max_out)      Integration.reset();
+            //  else if (integral <= min_out) Integration.reset();
+        
+            // P, I, D
+            float proportional = Kp * error;
+        
+            // Low-pass filter the derivative if desired:
             derivative_filtered = alpha * derivative_filtered + (1.0f - alpha) * derivativeRaw;
-            float derivative = Kd * derivative_filtered;
-
-            output = proportional + integral + derivative;
-
-            if (output >= max_out)
-            {
-                output = max_out;
-            } else if (output <= min_out)
-            {
-                output = min_out;
-            }     
-
+        
+            output = proportional + integral + Kd * derivative_filtered;
+            
+            // clamp output
+            if (output >= max_out)      output = max_out;
+            else if (output <= min_out) output = min_out;
         }
 };
