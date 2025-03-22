@@ -6,10 +6,10 @@
 #define BUFFER_SIZE 20
 #define no_signal 100
 
-bool line_history[BUFFER_SIZE] = {true};
 bool direction = 0;
+float spec = 0;
 
-string distance() {
+float distance() {
     float left_voltage = left_analog_sensor.read() * 3.3;  
     float right_voltage = right_analog_sensor.read() * 3.3;
 
@@ -21,13 +21,12 @@ string distance() {
     bool left_detected = detect_white_line(left_analog_sensor);
     bool right_detected = detect_white_line(right_analog_sensor);
 
-    bool linear = left_detected || right_detected;
 
+    bool linear = left_detected || right_detected;
+    
     float diff = right_voltage - left_voltage;
     float sum = right_voltage + left_voltage;
-    float spec = 0;
 
-    bool lost = !(abs(spec) == no_signal);
 
     if(linear){
         if(sum > 0.38){
@@ -61,15 +60,14 @@ string distance() {
             }
         }
     }
-
-    bool on_line = check_line_with_memory(lost, line_history, BUFFER_SIZE);
-    char specbuffer[20];
-    floatToString(spec, specbuffer);
-    return specbuffer;
+    return spec;
 }
 
-int main() {
-    while (true) {
-        distance(); // Now simply call the function
+int main(){
+    while(true){
+        float dist = distance();
+        char distbuffer[20];
+        floatToString(dist, distbuffer);
+        printf(">dist:%s\n", distbuffer);
     }
 }
