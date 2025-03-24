@@ -3,13 +3,21 @@
 #include "classes.h"
 #include "functions.h"
 
+volatile float line_dist = 0.0f;
+
+void updateLineDistance() {
+    // read the sensors in a thread-safe context
+    line_dist = LineDistance();
+}
+
+// The PID won't call LineDistance() from ISR anymore.
+// Instead, it calls a simple function that just returns 'line_dist'.
+float lineDistGetter() {
+    return line_dist;
+}
+
 
 int main(void){
-
-
-    // Pointers to functions
-        float (Encoder::*PtrToEncoderLSpeed)() = &Encoder::speed_linear;
-        float (Encoder::*PtrToEncoderASpeed)() = &Encoder::speed_angular;
 
     
     // Pin Setup
@@ -58,14 +66,30 @@ int main(void){
 
         float speed, distance;
 
+        float setspeed = 0.3;
+
         // PID
-        PID Right(0.3f, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
-        PID Left(0.3f, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); // p=1.8, i=4.5, d=0
+        PID Right(setspeed, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
+        PID Left(setspeed, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); // p=1.8, i=4.5, d=0
+
+        PID Position(5.0f, 12.0f, 0.0f, 0.0f, 52.0f, -52.0f, 3300);// p=6
+
+        EventQueue queue;
+        Thread queueThread;
+        queueThread.start(callback(&queue, &EventQueue::dispatch_forever));
+
+        // For example, update line_dist at 1000 Hz in the queue
+        queue.call_every(1ms, updateLineDistance);
+
+        // Meanwhile, the PID Ticker runs at 3300 Hz in ISR context,
+        // but only calls 'lineDistGetter()', which doesn't lock a mutex.
+        Position.start(callback(lineDistGetter));
 
         Left.start(callback(&Encoder2,&Encoder::speed_linear));
         Right.start(callback(&Encoder1,&Encoder::speed_linear));
 
-        float pwmL, pwmR;
+
+        float pwmL, pwmR, position;
 
 
         char linear1_buffer[20];
@@ -73,101 +97,46 @@ int main(void){
 
         Timer t;
 
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
+
 
 
     while(1){
 
-        pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
-        pwmR = ((Right.get_output() - 2.27)/(-2.47));//true
+    //    pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
+    //    pwmR = ((Right.get_output() - 2.27)/(-2.47));//true
 
-        while(1){
+
+        speed = (0.3 * (-Position.get_output()))/(52);
+
+        if (speed > 0.0f)
+        {
+            pwmL = (abs(speed) - 1.8295)/(-2.0257);
+            Motor2.write(pwmL);
+            Motor1.write(1.0f);
+        }else if (speed < 0.0f)
+        {
+            pwmR = (abs(speed) - 2.27)/(-2.47);
+            Motor1.write(pwmR);
             Motor2.write(1.0f);
-            Motor1.write(0.8f);
-
-            float linear1 =  Encoder1.speed_linear();
-            float linear2 =  Encoder2.speed_linear();
-
-            floatToString(linear1, linear1_buffer);
-            printf(">Encoder1:%s\n", linear1_buffer);
-            floatToString(linear2, linear2_buffer);
-            printf(">Encoder2:%s\n", linear2_buffer);
-
         }
 
-         float time = 0;
-         t.start();
+        
+        // distance = LineDistance();
 
-         while (time <= 5000)
-         {
-            time = t.read_ms();
-
-            Left.setpoint = 0.3;
-
-            pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
-
-            Motor2.write(pwmL);
-
-            float linear1 =  Left.setpoint;//Encoder1.speed_linear();
-            float linear2 =  Encoder2.speed_linear();
-            floatToString(linear1, linear1_buffer);
-            printf(">Encoder1:%s\n", linear1_buffer);
-            floatToString(linear2, linear2_buffer);
-            printf(">Encoder2:%s\n", linear2_buffer);
-         }
-
-         while (time <= 10000)
-         {
-            time = t.read_ms();
-
-            Left.setpoint = 2.6;
-
-            pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
-
-            Motor2.write(pwmL);
-
-            float linear1 =  Left.setpoint;//Encoder1.speed_linear();
-            float linear2 =  Encoder2.speed_linear();
-            floatToString(linear1, linear1_buffer);
-            printf(">Encoder1:%s\n", linear1_buffer);
-            floatToString(linear2, linear2_buffer);
-            printf(">Encoder2:%s\n", linear2_buffer);
-         }
-
-         while (time <= 15000)
-         {
-            time = t.read_ms();
-
-            Left.setpoint = 1.0f;
-
-            pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
-
-            Motor2.write(pwmL);
-
-            float linear1 =  Left.setpoint;//Encoder1.speed_linear();
-            float linear2 =  Encoder2.speed_linear();
-            floatToString(linear1, linear1_buffer);
-            printf(">Encoder1:%s\n", linear1_buffer);
-            floatToString(linear2, linear2_buffer);
-            printf(">Encoder2:%s\n", linear2_buffer);
-         }
-
-         t.reset();
-         
-
-
-
-        // floatToString(Left.get_output(), buffer1);
+         //floatToString(lineDistGetter(), buffer1);
         // floatToString(Encoder2.speed_linear(), buffer2);
 
 
-        // printf(">Lpidout: %s,Lspeed: %s\r\n", buffer1, buffer2);
+         //printf("position= %s\n", buffer1);
 
 
-        float linear1 =  1.0f;//Encoder1.speed_linear();
-        float linear2 =  Encoder2.speed_linear();
+        float linear1 =  LineDistance();//Encoder1.speed_linear();
+        float linear2 =  5.0f;
         floatToString(linear1, linear1_buffer);
-        printf(">Encoder1:%s\n", linear1_buffer);
+        printf(">Position:%s\n", linear1_buffer);
         floatToString(linear2, linear2_buffer);
-        printf(">Encoder2:%s\n", linear2_buffer);
+        printf(">PIDoutput:%s\n", linear2_buffer);
     }
 }
