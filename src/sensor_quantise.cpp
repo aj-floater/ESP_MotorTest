@@ -36,7 +36,7 @@ float distance() {
             }else{
                 spec = spec;
             }
-        }else{
+        }else if (sum < 0.38){
             spec = 0;
         }   
     }else if(!linear){
