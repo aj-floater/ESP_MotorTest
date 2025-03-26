@@ -69,10 +69,10 @@ int main(void){
         float setspeed = 0.3;
 
         // PID
-        PID Right(setspeed, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
-        PID Left(setspeed, 1.8f, 4.9f, 5.8f, 4.0f, -4.0f, 3300); // p=1.8, i=4.5, d=0
+        PID Right(setspeed, 1.8f, 4.9f, 0.0f, 4.0f, -4.0f, 3300); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
+        PID Left(setspeed, 1.8f, 4.9f, 0.0f, 4.0f, -4.0f, 3300); // p=1.8, i=4.5, d=0
 
-        PID Position(5.0f, 12.0f, 0.0f, 0.0f, 52.0f, -52.0f, 3300);// p=6
+        PID Position(4.0f, 1.0f, 1.2f, 0.0f, 152.0f, -152.0f, 3300);
 
         EventQueue queue;
         Thread queueThread;
@@ -100,27 +100,51 @@ int main(void){
         Motor1.write(1.0f);
         Motor2.write(1.0f);
 
+        float pwmL_speed=0.0f, pwmR_speed=0.0f, pwmL_position=0.0f, pwmR_position=0.0f, 
+        total_l_speed = 0, total_r_speed = 0, total_r_speed_b = 0, total_l_speed_b = 0,
+        pwmL_b=0, pwmR_b=0;
+
+
+
+
+
 
 
     while(1){
 
-    //    pwmL = ((Left.get_output() - 1.8295)/(-2.0257));//true
-    //    pwmR = ((Right.get_output() - 2.27)/(-2.47));//true
+        pwmL_speed = ((Left.get_output() - 1.8295)/(-2.0257));//true
+        pwmR_speed = ((Right.get_output() - 2.27)/(-2.47));//true
 
-
-        speed = (0.3 * (-Position.get_output()))/(52);
+        speed = ((setspeed*7.0f) * (-Position.get_output()))/(52);
 
         if (speed > 0.0f)
         {
-            pwmL = (abs(speed) - 1.8295)/(-2.0257);
+
+            total_l_speed = (Left.get_output()) + abs(speed);
+            total_r_speed_b = (Right.get_output()) - abs(speed);
+            pwmL = (total_l_speed - 1.8295)/(-2.0257);
+            pwmR_b = (total_r_speed_b - 2.27)/(-2.47);
+
             Motor2.write(pwmL);
-            Motor1.write(1.0f);
-        }else if (speed < 0.0f)
-        {
-            pwmR = (abs(speed) - 2.27)/(-2.47);
-            Motor1.write(pwmR);
-            Motor2.write(1.0f);
+            Motor1.write(pwmR_b);
         }
+        if (speed < 0.0f)
+        {
+            
+            total_r_speed = (Right.get_output()) + abs(speed);
+            total_l_speed_b = (Left.get_output()) - abs(speed);
+            pwmR = (total_r_speed - 2.27)/(-2.47);
+            pwmL_b = (total_l_speed_b - 1.8295)/(-2.0257);
+
+            Motor1.write(pwmR);
+            Motor2.write(pwmL_b);
+        }
+        if (speed == 0)
+        {
+            Motor2.write(pwmL_speed);
+            Motor1.write(pwmR_speed);
+        }
+        
 
         
         // distance = LineDistance();
@@ -132,8 +156,8 @@ int main(void){
          //printf("position= %s\n", buffer1);
 
 
-        float linear1 =  LineDistance();//Encoder1.speed_linear();
-        float linear2 =  5.0f;
+        float linear1 =  Encoder2.speed_linear();//Encoder1.speed_linear();
+        float linear2 =  setspeed;
         floatToString(linear1, linear1_buffer);
         printf(">Position:%s\n", linear1_buffer);
         floatToString(linear2, linear2_buffer);
