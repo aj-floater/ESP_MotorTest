@@ -50,31 +50,16 @@ int main(void)
         // modify(LeftPot.getCurrentSampleMapped(), RightPot.getCurrentSampleMapped());
 
         display.refresh();
+        
+        // Bluetooth code starts here
 
-        encodingProcedure();
-        if (hm10.read() != -EAGAIN) {
-            // size_t numFloats = 0;
-            // float* decodedFloats = hm10.decodeData(numFloats);
+        // this has to be called constantly during the loop, it's not an interrupt
+        if (hm10.read() != -EAGAIN) { // check for new data from the hm10 module
+            printf(hm10.currentReadBuffer); // this hm10.currentReadBuffer is filled with data whenever hm10.read() is called
+            // here we are just printing it to the serial, but you could test if it's 0 or 1 etc to change 
 
-            // hm10.read();
-            
-            display.lcd.cls();
-            display.lcd.locate(0, 0);
-            display.lcd.printf(hm10.currentReadBuffer);
-            // decodingProcedure();
+            // what i've found is that sticking a random character before the character you want to be read is the only
+            // way to read reliably (eg send '>0' to read '0')
         }
-
-        // float turning_speed = 10.0f;
-        // float forward_speed = 30.0f;
-
-        // if (stadia.leftJoystickY == 0.0f)
-        //     turning_speed = 20.0f;
-        // else turning_speed = 10.0f;
-
-        // right_wheel.speed(stadia.leftJoystickY * forward_speed + stadia.rightJoystickX * turning_speed);
-        // left_wheel.speed(stadia.leftJoystickY * forward_speed + -stadia.rightJoystickX * turning_speed);
-
-        // right_wheel.update();
-        // left_wheel.update();
     }
 }
