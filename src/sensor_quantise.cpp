@@ -36,7 +36,7 @@ int main() {
         //printf(",stop: %d\n", stop);  // PRINT STOP
 
         if (linear) {
-            if (sum < 0.38) {
+            if (sum < 1.254) {
                 spec = 0;
             } else {
                 float dist_eqn = 2.3129f * sum + 2.2961f;
