@@ -119,6 +119,7 @@ void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Mo
          total_l_speed = 0, total_r_speed = 0, total_r_speed_b = 0, total_l_speed_b = 0,
          pwmL_b=0, pwmR_b=0, a = 0.0f, speed = 0, pwmL, pwmR;
 
+
         pwmL_speed = ((Left.get_output() - 1.8295)/(-2.0257));//true
         pwmR_speed = ((Right.get_output() - 2.27)/(-2.47));//true
 
@@ -152,5 +153,5 @@ void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Mo
         {
             Motor2.write(pwmL_speed);
             Motor1.write(pwmR_speed);
-}
-}
+        }
+    }

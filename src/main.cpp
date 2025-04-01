@@ -109,10 +109,21 @@ int main(void){
         Motor1.write(1.0f);
         Motor2.write(1.0f);
 
+        stop_state = 0;
 
     while(1){
 
-        FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
+ 
+
+        do{
+            FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
+            printf("INSIDE DO LOOP \n");
+        }while(stop_state == 0);
+
+
+        Motor1.write(1.0f);
+        Motor2.write(1.0f);
+        while(1){}
 
         
 
