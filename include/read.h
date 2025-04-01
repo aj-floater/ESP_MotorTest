@@ -26,16 +26,31 @@ DigitalIn rightmost_digital_sensor(A0, PullDown); //right
 // FIX
 bool memory(bool current_reading, bool history[], int buffer_size) {
 
-    printf("INSIDE MEMORY\n");
+   // printf("INSIDE MEMORY\n");
 
     for (int i = buffer_size - 1; i > 0; --i) {
         history[i] = history[i - 1];
     }
     history[0] = current_reading;
 
+    // printf("History buffer: ");
+    // for (int i = 0; i < buffer_size; ++i) {
+    // printf("%d ", history[i]);
+    // }
+    // printf("\n");
+
+    bool check = true;
     for (int i = 0; i < buffer_size; ++i) {
-        if (!history[i]) {return false; printf("MEMORY RETURN 0\n");}
-        else{printf("MEMORY RETURN 1\n"); return true;}
+        check = (!history[i]) && check;
     }
 
+    if (check)
+    {
+        //printf("RETURN 1\n");
+        return true;
+    }else{
+        //printf("RETURN 0\n");
+        return false;
+    }
+    
 }

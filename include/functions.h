@@ -113,3 +113,44 @@ void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOu
     Motor2.write(1.0f);  
 }
 
+void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Motor2, float setspeed){
+
+         float pwmL_speed=0.0f, pwmR_speed=0.0f, pwmL_position=0.0f, pwmR_position=0.0f, 
+         total_l_speed = 0, total_r_speed = 0, total_r_speed_b = 0, total_l_speed_b = 0,
+         pwmL_b=0, pwmR_b=0, a = 0.0f, speed = 0, pwmL, pwmR;
+
+        pwmL_speed = ((Left.get_output() - 1.8295)/(-2.0257));//true
+        pwmR_speed = ((Right.get_output() - 2.27)/(-2.47));//true
+
+        speed = ((setspeed*7) * (-Position.get_output()))/(52);
+
+        if (speed > 0.0f)
+        {
+
+            total_l_speed = (Left.get_output()) + abs(speed);
+            total_r_speed_b = (Right.get_output()) - abs(speed);
+            pwmL = (total_l_speed - 1.8295)/(-2.0257);
+            pwmR_b = (total_r_speed_b - 2.27)/(-2.47);
+
+            Motor2.write(pwmL);
+            Motor1.write(pwmR_b);
+            
+        }
+        if (speed < 0.0f)
+        {
+            
+            total_r_speed = (Right.get_output()) + abs(speed);
+            total_l_speed_b = (Left.get_output()) - abs(speed);
+            pwmR = (total_r_speed - 2.27)/(-2.47);
+            pwmL_b = (total_l_speed_b - 1.8295)/(-2.0257);
+
+            Motor1.write(pwmR);
+            Motor2.write(pwmL_b);
+           
+        }
+        if (speed == 0)
+        {
+            Motor2.write(pwmL_speed);
+            Motor1.write(pwmR_speed);
+}
+}
