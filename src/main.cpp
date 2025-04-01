@@ -110,12 +110,12 @@ int main(void){
         Motor2.write(1.0f);
 
         stop_state = 0;
+        HM10 hm10(PA_11, PA_12);
+
 
     while(1){
 
- 
-
-        do{
+       do{
             FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
             printf("INSIDE DO LOOP \n");
         }while(stop_state == 0);
@@ -124,10 +124,6 @@ int main(void){
         Motor1.write(1.0f);
         Motor2.write(1.0f);
         while(1){}
-
-        
-
-        
 
 
 
