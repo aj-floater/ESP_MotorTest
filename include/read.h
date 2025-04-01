@@ -13,27 +13,29 @@ DigitalIn left_inner_digital_sensor(A4, PullDown); //down
 DigitalIn right_inner_digital_sensor(A1, PullDown); //left
 DigitalIn rightmost_digital_sensor(A0, PullDown); //right
 
-float read_sensor(AnalogIn &sensor) {
-    return sensor.read()*3.3;
-}
+//float read_sensor(AnalogIn &sensor) {
+    //return sensor.read()*3.3;
+//}
 
 // Function to detect white line
-bool detect_white_line(AnalogIn &sensor) {
-    float sensor_value = read_sensor(sensor);
-    return (sensor_value < THRESHOLD);
-}
+//bool detect_white_line(AnalogIn &sensor) {
+  //  float sensor_value = read_sensor(sensor);
+    //return (sensor_value < THRESHOLD);
+//}
 
 // FIX
-bool check_line_with_memory(bool current_reading, bool history[], int buffer_size) {
-    for (int i = buffer_size - 1; i > 0; i--) {
-        history[i] = history[i - 1];
-    }//Shift the value to the right
-    history[0] = current_reading;//Add the current value
+bool memory(bool current_reading, bool history[], int buffer_size) {
 
-    for (int i = 0; i < buffer_size; i++) {
-        if (history[i]) {
-            return true;  
-        }
+    printf("INSIDE MEMORY\n");
+
+    for (int i = buffer_size - 1; i > 0; --i) {
+        history[i] = history[i - 1];
     }
-    return false;//find if there are true
+    history[0] = current_reading;
+
+    for (int i = 0; i < buffer_size; ++i) {
+        if (!history[i]) {return false; printf("MEMORY RETURN 0\n");}
+        else{printf("MEMORY RETURN 1\n"); return true;}
+    }
+
 }

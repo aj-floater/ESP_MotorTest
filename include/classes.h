@@ -1,4 +1,6 @@
 #include "mbed.h" 
+#include "read.h"
+
 
 
 // This class create Encoders objects.
@@ -164,7 +166,7 @@ class PID{
     private:
     Ticker PID_Cycle, error_Cycle;
     Callback<float()> _input_func;
-    Integrator Integration;
+   
     float volatile prev_error, prev_input;
     float volatile output = 0.0f;
     float volatile error = 0.0f;
@@ -174,8 +176,8 @@ class PID{
 
     public:
         float setpoint, Kp, Ki, Kd, max_out, min_out, freq;
+        Integrator Integration;
 
-        
         PID(float setpoint,
              float Kp,
               float Ki,
@@ -247,3 +249,101 @@ class PID{
             else if (output <= min_out) output = min_out;
         }
 };
+
+
+
+
+
+
+
+class MovingAverfiltergeFilter {
+public:
+    #define FILTER_WINDOW 8
+    MovingAverfiltergeFilter() : index(0), sum(0.0f) {
+        for (int i = 0; i < FILTER_WINDOW; ++i) buffer[i] = 0.0f;
+    }
+
+    float filter(float new_value) {
+        sum -= buffer[index];
+        buffer[index] = new_value;
+        sum += new_value;
+        index = (index + 1) % FILTER_WINDOW;
+        return sum / FILTER_WINDOW;
+    }
+
+private:
+    float buffer[FILTER_WINDOW];
+    int index;
+    float sum;
+};
+
+struct SpecResult {
+    float spec;
+    bool stop;
+};
+
+SpecResult LineDistance(MovingAverfiltergeFilter& left_filter, MovingAverfiltergeFilter& right_filter,  bool* line_history) {
+    #define THRESHOLD 2.8
+    #define BUFFER_SIZE 16
+    #define no_signal 80
+   
+    float la = left_analog_sensor.read();
+    float ra = right_analog_sensor.read();
+
+    float lfilter = left_filter.filter(la);
+    float rfilter = right_filter.filter(ra);
+
+    bool lm = leftmost_digital_sensor.read();
+    bool li = left_inner_digital_sensor.read();
+    bool ri = right_inner_digital_sensor.read();
+    bool rm = rightmost_digital_sensor.read();
+
+    bool left_detected = (lfilter * 3.3 < THRESHOLD);
+    bool right_detected = (rfilter * 3.3 < THRESHOLD);
+
+    bool dactive = !(lm && li && ri && rm);
+    bool linear = left_detected || right_detected;
+
+    float diff = rfilter - lfilter;
+    float sum = rfilter + lfilter;
+
+    bool stop = memory(dactive, line_history, BUFFER_SIZE);
+
+    float spec = 0.0f;
+    bool direction = 0;
+
+    char bufferA[20];
+    char bufferB[20];
+
+    //floatToString(lfilter, bufferA);
+    //floatToString(rfilter, bufferB);
+
+    //printf("LM=%d, LI=%d, RI=%d, RM=%d\n",lm, li, ri, rm);
+ 
+
+    if (linear) {
+        if (sum < 0.38f) {
+            spec = 0.0f;
+        } else {
+            float dist_eqn = 2.3129f * 3.3 * sum + 2.2961f;
+            spec = diff > 0 ? dist_eqn : -dist_eqn;
+        }
+        /*printf("Linear\n");*/
+    } else {
+        /*printf("NOT LINEAR\n");*/
+        if (!lm)      { spec = 52.0f; direction = 0; /*printf("NOT LM\n");*/}
+        else if (!li) { spec = 27.0f; direction = 0; /*printf("NOT LI\n");*/}
+        else if (!ri) { spec = -27.0f; direction = 1; /*printf("NOT RI\n");*/}
+        else if (!rm) { spec = -52.0f; direction = 1; /*printf("NOT RM\n");*/}
+        else {
+            /*printf("ALL 1\n");*/
+            if (stop) {
+                /*printf("SHOULD BE 1\n");*/
+                return {spec, true};
+            }
+        }
+    }
+    /*printf("SHOULD BE 0\n");*/
+    return {spec, false};
+
+}
