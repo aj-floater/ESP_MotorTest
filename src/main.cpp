@@ -109,14 +109,19 @@ int main(void){
         Motor1.write(1.0f);
         Motor2.write(1.0f);
 
+        HM10 hm10(PA_11, PA_12);
+
 
     while(1){
 
         FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
 
-        
-
-        
+        if (hm10.read() != -EAGAIN) {
+            hm10.write(hm10.currentReadBuffer);
+            if (hm10.currentReadBuffer[0] == '1'){
+                Turn(3.14, Motor1, Motor2, I3, Direction1, Direction2);
+            }
+        }
 
 
 
