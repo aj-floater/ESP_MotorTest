@@ -118,6 +118,21 @@ int main(void){
        do{
             FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
             printf("INSIDE DO LOOP \n");
+
+            if (hm10.read() != -EAGAIN) {
+                hm10.write(hm10.currentReadBuffer);
+                if (hm10.currentReadBuffer[0] == '1'){
+
+
+                    Turn(-3.4, Motor1, Motor2, I3, Direction1, Direction2);
+
+                    Left.Integration.reset();
+                    Right.Integration.reset();
+                    Position.Integration.reset();
+
+                    stop_state =0;
+                }
+            }
         }while(stop_state == 0);
 
 
