@@ -3,6 +3,34 @@
 #include "classes.h"
 #include "functions.h"
 
+enum class State : uint8_t {
+    Turn            = 'T',
+    LineFollowing   = 'L',
+    Controller      = 'C',
+    ChangeValue     = 'V',
+    Idle            = 'I',
+    None            = 0
+};
+
+// Holds the current state; starts in LineFollowing by default
+volatile State currentState = State::LineFollowing;
+
+void pollBLEState(HM10 &hm10) {
+    int r = hm10.read();
+    if (r >= 0) {
+        char cmd = hm10.currentReadBuffer[1];
+        switch(cmd) {
+            case 'T': currentState = State::Turn;           break;
+            case 'L': currentState = State::LineFollowing;  break;
+            case 'C': currentState = State::Controller;     break;
+            case 'V': currentState = State::ChangeValue;    break;
+            case 'I': currentState = State::Idle;           break;
+            default:  /* ignore unknown */                  break;
+        }
+    }
+}
+
+
 volatile float line_dist = 0.0f;
 volatile bool stop_state = true;
 
@@ -114,60 +142,68 @@ int main(void){
 
 
     while(1){
+        while (stop_state == 0) {
+            pollBLEState(hm10);
+            switch(currentState) {
+                case State::Turn:
+                    // run your Turn(...) once, then switch back to LineFollowing
+                    Turn(-3.4f, Motor1, Motor2, I3, Direction1, Direction2);
+                    currentState = State::LineFollowing;
+                    break;
+        
+                case State::LineFollowing:
+                    // normal line-following
+                    FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
+                    break;
 
-       do{
-            FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
-            printf("INSIDE DO LOOP \n");
+                case State::Controller:
+                    // controlled using computer
 
-            if (hm10.read() != -EAGAIN) {
-                hm10.write(hm10.currentReadBuffer);
-                if (hm10.currentReadBuffer[0] == '1'){
-
-
-                    Turn(-3.4, Motor1, Motor2, I3, Direction1, Direction2);
-
-                    Left.Integration.reset();
-                    Right.Integration.reset();
-                    Position.Integration.reset();
-
-                    stop_state =0;
+                    break;
+        
+                case State::ChangeValue: {
+                    // Read any new BLE packet
+                    if (hm10.read() >= 0) {
+                        // Expect format: "V,<name>,<value>"
+                        char* buf = hm10.currentReadBuffer;
+                        // strtok will split on commas:
+                        char* token = strtok(buf, ",");      // token == "V"
+                        char* varName = strtok(nullptr, ","); // e.g. "setspeed"
+                        char* valStr  = strtok(nullptr, ","); // e.g. "0.75"
+        
+                        if (varName && valStr) {
+                            float newVal = atof(valStr);
+        
+                            // Match against your known variables
+                            if (strcmp(varName, "setspeed") == 0) {
+                                setspeed = newVal;
+                            }
+                            else if (strcmp(varName, "Position.Kp") == 0) {
+                                Position.Kp = newVal;
+                            }
+                            else if (strcmp(varName, "Position.Ki") == 0) {
+                                Position.Ki = newVal;
+                            }
+                            else if (strcmp(varName, "Position.Kd") == 0) {
+                                Position.Kd = newVal;
+                            }
+                        }
+                    }
+                    break;
                 }
+
+                case State::Idle:
+                    break;
+        
+                default:
+                    // No valid state yet—just idle or fallback:
+                    break;
             }
-        }while(stop_state == 0);
+        }        
 
 
         Motor1.write(1.0f);
         Motor2.write(1.0f);
         while(1){}
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // distance = LineDistance();
-
-        // floatToString(lineDistGetter(), buffer1);
-         //floatToString(Encoder2.speed_linear(), buffer2);
-
-
-         //printf("StopState= %s\n",buffer1 );
-              // printf("StopState= %i\n",stop_state);
-         
-
-
-        // float linear1 =  Encoder2.speed_linear();//Encoder1.speed_linear();
-        // float linear2 =  setspeed;
-        // floatToString(linear1, linear1_buffer);
-        // printf(">Position:%s\n", linear1_buffer);
-        // floatToString(linear2, linear2_buffer);
-        // printf(">PIDoutput:%s\n", linear2_buffer);
     }
 }
