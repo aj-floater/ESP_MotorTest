@@ -113,7 +113,7 @@ void Turn(float angle, PwmOut &Motor1, PwmOut &Motor2, Integrator &I3, DigitalOu
     Motor2.write(1.0f);  
 }
 
-void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Motor2, float setspeed){
+void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Motor2, float &setspeed){
 
          float pwmL_speed=0.0f, pwmR_speed=0.0f, pwmL_position=0.0f, pwmR_position=0.0f, 
          total_l_speed = 0, total_r_speed = 0, total_r_speed_b = 0, total_l_speed_b = 0,
@@ -123,7 +123,9 @@ void FollowLine(PID &Left, PID &Right, PID &Position, PwmOut &Motor1, PwmOut &Mo
         pwmL_speed = ((Left.get_output() - 1.8295)/(-2.0257));//true
         pwmR_speed = ((Right.get_output() - 2.27)/(-2.47));//true
 
-        speed = ((setspeed*7) * (-Position.get_output()))/(52);
+        speed = ((setspeed*15) * (-Position.get_output()))/(52);
+
+        // speed = (-Position.get_output())
 
         if (speed > 0.0f)
         {

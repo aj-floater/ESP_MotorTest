@@ -1,3 +1,6 @@
 {
-  "C_Cpp.default.compilerPath": "/Users/archiejames/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc"
+  "C_Cpp.default.compilerPath": "/Users/archiejames/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
+  "files.associations": {
+    "cmath": "cpp"
+  }
 }

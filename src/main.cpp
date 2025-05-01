@@ -75,13 +75,13 @@ int main(void){
 
         float distance;
 
-        float setspeed = 0.6f;
+        float setspeed = 0.9f; //0.6
 
         // PID
         PID Right(setspeed, 1.8f, 4.9f, 0.0f, 4.0f, -4.0f, 3300); //float setpoint,float Kp,float Ki,float Kd,float max_out,float min_out,float freq
         PID Left(setspeed, 1.8f, 4.9f, 0.0f, 4.0f, -4.0f, 3300); // p=1.8, i=4.5, d=0
 
-        PID Position(0.0f, 0.3f, 0.5f, 0.0f, 300.0f, -300.0f, 3300);// s= 0.6 - kp = 0.3, ki = 0.5 with k=7 and divided by 52 bounds at 152
+        PID Position(0.0f, 0.158f, 0.25f, 0.06f, 10000.0f, -10000.0f, 3300);// s= 0.0 - kp = 0.3, ki = 0.3, kd = 0.05 with k=7 and divided by 52 bounds at 152
 
         EventQueue queue;
         Thread queueThread;
@@ -116,9 +116,6 @@ int main(void){
     while(1){
 
        do{
-            FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
-            printf("INSIDE DO LOOP \n");
-
             if (hm10.read() != -EAGAIN) {
                 hm10.write(hm10.currentReadBuffer);
                 if (hm10.currentReadBuffer[0] == '1'){
@@ -132,7 +129,24 @@ int main(void){
 
                     stop_state =0;
                 }
+                if (hm10.currentReadBuffer[0] == '2'){
+                    Right.setpoint = 0.3f;
+                    Left.setpoint = 0.3f;
+                }
+                if (hm10.currentReadBuffer[0] == '3'){
+                    Right.setpoint = 0.9f;
+                    Left.setpoint = 0.9f;
+                }
+                if (hm10.currentReadBuffer[0] == '4'){
+                    Right.setpoint = 1.2f;
+                    Left.setpoint = 1.2f;
+                }
             }
+
+            FollowLine(Left, Right, Position, Motor1, Motor2, setspeed);
+            printf("INSIDE DO LOOP \n");
+
+            
         }while(stop_state == 0);
 
 

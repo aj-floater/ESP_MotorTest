@@ -334,8 +334,8 @@ SpecResult LineDistance(MovingAverfiltergeFilter& left_filter, MovingAverfilterg
     } else {
         /*printf("NOT LINEAR\n");*/
         if (!lm)      { spec = 52.0f; direction = 0; /*printf("NOT LM\n");*/}
-        else if (!li) { spec = 27.0f; direction = 0; /*printf("NOT LI\n");*/}
-        else if (!ri) { spec = -27.0f; direction = 1; /*printf("NOT RI\n");*/}
+        else if (!li) { spec = 27.0f; direction = 0; /*printf("NOT LI\n");*/}//27
+        else if (!ri) { spec = -27.0f; direction = 1; /*printf("NOT RI\n");*/}//27
         else if (!rm) { spec = -52.0f; direction = 1; /*printf("NOT RM\n");*/}
         else {
             /*printf("ALL 1\n");*/
