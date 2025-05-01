@@ -3,6 +3,34 @@
 #include "classes.h"
 #include "functions.h"
 
+enum class State : uint8_t {
+    Turn            = 'T',
+    LineFollowing   = 'L',
+    Controller      = 'C',
+    ChangeValue     = 'V',
+    Idle            = 'I',
+    None            = 0
+};
+
+// Holds the current state; starts in LineFollowing by default
+volatile State currentState = State::LineFollowing;
+
+void pollBLEState(HM10 &hm10) {
+    int r = hm10.read();
+    if (r >= 0) {
+        char cmd = hm10.currentReadBuffer[1];
+        switch(cmd) {
+            case 'T': currentState = State::Turn;           break;
+            case 'L': currentState = State::LineFollowing;  break;
+            case 'C': currentState = State::Controller;     break;
+            case 'V': currentState = State::ChangeValue;    break;
+            case 'I': currentState = State::Idle;           break;
+            default:  /* ignore unknown */                  break;
+        }
+    }
+}
+
+
 volatile float line_dist = 0.0f;
 volatile bool stop_state = true;
 
@@ -153,35 +181,5 @@ int main(void){
         Motor1.write(1.0f);
         Motor2.write(1.0f);
         while(1){}
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // distance = LineDistance();
-
-        // floatToString(lineDistGetter(), buffer1);
-         //floatToString(Encoder2.speed_linear(), buffer2);
-
-
-         //printf("StopState= %s\n",buffer1 );
-              // printf("StopState= %i\n",stop_state);
-         
-
-
-        // float linear1 =  Encoder2.speed_linear();//Encoder1.speed_linear();
-        // float linear2 =  setspeed;
-        // floatToString(linear1, linear1_buffer);
-        // printf(">Position:%s\n", linear1_buffer);
-        // floatToString(linear2, linear2_buffer);
-        // printf(">PIDoutput:%s\n", linear2_buffer);
     }
 }
